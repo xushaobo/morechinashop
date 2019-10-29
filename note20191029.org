@@ -1,0 +1,4 @@
+1.Laravel刚安装时权限报错只需要运行以下命令，重启nginx即可
+sudo chmod -R 777 vendor storage
+echo "umask 000" | sudo tee -a /etc/resolv.conf
+sudo service nginx restart

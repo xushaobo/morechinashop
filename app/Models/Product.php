@@ -19,4 +19,10 @@ class Product extends Model
     {
         return $this->hasMany(ProductSku::class);
     }
+
+    public function ccategory()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
 }

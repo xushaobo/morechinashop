@@ -73,7 +73,7 @@ class CategoriesController extends Controller
             // 定义一个名为『是否目录』的单选框
            $form->radio('is_directory', '是否目录')
                 ->options(['1' => '是', '0' => '否'])
-                ->default('0')
+                ->default('1')
                 ->rules('required');
 
             // 定义一个名为父类目的下拉框

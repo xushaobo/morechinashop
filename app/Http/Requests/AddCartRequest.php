@@ -6,15 +6,9 @@ use App\Models\ProductSku;
 
 class AddCartRequest extends Request
 {
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function rules()
     {
-		return [
+        return [
             'sku_id' => [
                 'required',
                 function ($attribute, $value, $fail) {
@@ -36,17 +30,17 @@ class AddCartRequest extends Request
         ];
     }
 
-	public function attributes()
-	{
-		return [
-			'amount' => '商品数量'
-		];
-	}
+    public function attributes()
+    {
+        return [
+            'amount' => '商品数量'
+        ];
+    }
 
-	public function messages()
-	{
-		 return [
+    public function messages()
+    {
+        return [
             'sku_id.required' => '请选择商品'
         ];
-	}
+    }
 }

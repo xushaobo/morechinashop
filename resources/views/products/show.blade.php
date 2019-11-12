@@ -22,7 +22,13 @@
           <label>选择</label>
           <div class="btn-group btn-group-toggle" data-toggle="buttons">
             @foreach($product->skus as $sku)
-              <label class="btn sku-btn"  title="{{ $sku->description }}" >
+              <label
+                 class="btn sku-btn"
+                 data-price="{{ $sku->price  }}"
+                 data-stock="{{ $sku->stock }}"
+                 data-toggle="tooltip"
+                 title="{{ $sku->description }}"
+                 data-placement="bottom">
                 <input type="radio" name="skus" autocomplete="off" value="{{ $sku->id }}"> {{ $sku->title }}
               </label>
             @endforeach
@@ -37,6 +43,7 @@
                 <input type="radio" name="skus" autocomplete="off" value="{{ $sku->title }}"> {{ $sku-> stock }}
               </label>
             @endforeach
+            <label>件</label>
           </div>
         </div>
 	   <div class="buttons">

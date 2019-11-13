@@ -22,6 +22,8 @@ class CreateOrderItemsTable extends Migration
             $table->unsignedInteger('rating')->nullable();
             $table->text('review')->nullable();
             $table->timestamp('reviewed_at')->nullable();
+            $table->string('refund_status')->default(\App\Models\Order::REFUND_STATUS_PENDING);
+            $table->string('ship_status')->default('App\Models\Order::SHIP_STATUS_PENDING');
         });
     }
     /**

@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b424d19025ad980f3e950bc76cbb2b87",
+    "content-hash": "2823d2b091196cbbe5d8011d1b88e98b",
     "packages": [
         {
             "name": "dnoegel/php-xdg-base-dir",
@@ -511,21 +511,21 @@
         },
         {
             "name": "encore/laravel-admin",
-            "version": "v1.6.8",
+            "version": "v1.7.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/z-song/laravel-admin.git",
-                "reference": "818e6691f6ed419f9d30ad4aaca0846fb1243313"
+                "reference": "4c82e84f70556b1cdb6647ff82dee87921e3dddd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/z-song/laravel-admin/zipball/818e6691f6ed419f9d30ad4aaca0846fb1243313",
-                "reference": "818e6691f6ed419f9d30ad4aaca0846fb1243313",
+                "url": "https://api.github.com/repos/z-song/laravel-admin/zipball/4c82e84f70556b1cdb6647ff82dee87921e3dddd",
+                "reference": "4c82e84f70556b1cdb6647ff82dee87921e3dddd",
                 "shasum": ""
             },
             "require": {
                 "doctrine/dbal": "2.*",
-                "laravel/framework": "~5.5",
+                "laravel/framework": "~5.5|~6.0",
                 "php": ">=7.0.0",
                 "symfony/dom-crawler": "~3.1|~4.0"
             },
@@ -533,8 +533,8 @@
                 "fzaninotto/faker": "~1.4",
                 "intervention/image": "~2.3",
                 "laravel/browser-kit-testing": "^2.0",
-                "laravel/laravel": "~5.5",
-                "phpunit/phpunit": "~6.0",
+                "laravel/laravel": "~5.5|~6.0",
+                "phpunit/phpunit": "~6.0|~8.0",
                 "symfony/css-selector": "~3.1"
             },
             "suggest": {
@@ -578,7 +578,7 @@
                 "grid",
                 "laravel"
             ],
-            "time": "2018-12-13T06:35:28+00:00"
+            "time": "2019-11-08T07:40:27+00:00"
         },
         {
             "name": "erusev/parsedown",

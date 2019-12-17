@@ -7,6 +7,8 @@ use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
+use Illuminate\Http\Request;
+use App\Exceptions\InvalidRequestException;
 
 class OrdersController extends Controller
 {
@@ -57,5 +59,30 @@ class OrdersController extends Controller
             });
         });
         return $grid;
+    }
+
+    public function ship(Order $order,Request $request)
+    {
+        //判断当前订单发货状态是否为未发货
+        if ($order->ship_status !== Order::SHIP_STATUS_PENDING) {
+            throw new InvalidRequestException('订单已发货');
+        }
+
+        $data = $this->validate($request, [
+            'express_company' => ['required'],
+            'express_no' => ['required'],
+        ],[], [
+            'express_company' => '物流公司',
+            'express_no' => '物流单号',
+        ]);
+        //将订单发货状态改为已发货，并存入物流信息
+        $order->update([
+            'ship_status' => Order::SHIP_STATUS_DELIVERED,
+            //在Order模型的$casts属性里指明了ship_data是一个数组
+            //因此这里可以直接把数组传过去
+            'ship_data' => $data,
+        ]);
+
+        return redirect()->back();
     }
 }

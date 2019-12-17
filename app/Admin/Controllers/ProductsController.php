@@ -143,4 +143,5 @@ class ProductsController extends Controller
 
         return $form;
     }
+
 }

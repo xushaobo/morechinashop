@@ -28,4 +28,6 @@ Route::group([
     $router->put('categories/{id}', 'CategoriesController@update');
     $router->delete('categories/{id}', 'CategoriesController@destroy');
     $router->get('api/categories', 'CategoriesController@apiIndex');
+
+    $router->get('orders', 'OrdersController@index')->name('admin.orders.index');
 });

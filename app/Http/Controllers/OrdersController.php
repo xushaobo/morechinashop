@@ -8,6 +8,8 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Services\OrderService;
 
+use App\Events\OrderCreated;
+
 class OrdersController extends Controller
 {
     public function store(OrderRequest $request, OrderService $orderService)
@@ -16,6 +18,11 @@ class OrdersController extends Controller
         $address = UserAddress::find($request->input('address_id'));
 
         return $orderService->store($user, $address, $request->input('remark'), $request->input('items'));
+    }
+
+    protected function afterCreated(Order $order)
+    {
+        event(new OrderCreated($order));
     }
 
 	 public function index(Request $request)
@@ -32,6 +39,7 @@ class OrdersController extends Controller
 
 	public function show(Order $order, Request $request)
     {
+        $this->afterCreated($order);
         $this->authorize('own',$order);
         return view('orders.show', ['order' => $order->load(['items.productSku', 'items.product'])]);
     }

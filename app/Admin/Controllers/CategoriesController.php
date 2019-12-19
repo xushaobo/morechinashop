@@ -77,7 +77,7 @@ class CategoriesController extends Controller
                 ->rules('required');
 
             // 定义一个名为父类目的下拉框
-            $form->select('parent_id', '父类目')->ajax('/admin/api/categories');
+            $form->select('parent_id', '父类目')->ajax('/admin/api/categories?is_directory=0');
         }
 
         return $form;

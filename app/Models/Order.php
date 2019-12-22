@@ -18,10 +18,12 @@ class Order extends Model
 
     public static $refundStatusMap = [
         self::REFUND_STATUS_PENDING    => '未退款',
-        self::REFUND_STATUS_APPLIED    => '已申请退款',
-        self::REFUND_STATUS_PROCESSING => '退款中',
-        self::REFUND_STATUS_SUCCESS    => '退款成功',
-        self::REFUND_STATUS_FAILED     => '退款失败',
+        //self::REFUND_STATUS_APPLIED    => '已申请退款',
+        self::REFUND_STATUS_APPLIED    => '已申请领导审批',
+        //self::REFUND_STATUS_PROCESSING => '退款中',
+        self::REFUND_STATUS_PROCESSING => '审批中',
+        self::REFUND_STATUS_SUCCESS    => '审批成功',
+        self::REFUND_STATUS_FAILED     => '审批失败',
     ];
 
     public static $shipStatusMap = [

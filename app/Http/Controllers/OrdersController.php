@@ -10,6 +10,8 @@ use App\Services\OrderService;
 
 use App\Events\OrderCreated;
 
+use App\Http\Requests\PayConfirmRequest;
+
 class OrdersController extends Controller
 {
     public function store(OrderRequest $request, OrderService $orderService)
@@ -42,5 +44,29 @@ class OrdersController extends Controller
         $this->afterCreated($order);
         $this->authorize('own',$order);
         return view('orders.show', ['order' => $order->load(['items.productSku', 'items.product'])]);
+    }
+
+    public function payConfirm(Order $order, PayConfirmRequest $request)
+    {
+        $this->authorize('own',$order);
+        // 校验订单是否属于当前用户
+        // 判断订单是否已付款
+        //if (!$order->paid_at) {
+        //    throw new InvalidRequestException('该订单未支付，不可退款');
+        //}
+        // 判断订单申请审批状态是否正确
+        if ($order->refund_status !== Order::REFUND_STATUS_PENDING) {
+            throw new InvalidRequestException('该订单已提交领导申批，请勿重复申请');
+        }
+        // 将用户输入的审批理由放到订单的 extra 字段中
+        $extra                  = $order->extra ?: [];
+        $extra['refund_reason'] = $request->input('reason');
+        // 将订单申请审批状态改为已申请退款
+        $order->update([
+            'refund_status' => Order::REFUND_STATUS_APPLIED,
+            'extra'         => $extra,
+        ]);
+
+        return $order;
     }
 }

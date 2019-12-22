@@ -67,10 +67,55 @@
             @endif
           </div>
         </div>
+        <!-- 如果有物流信息则展示 -->
+        @if($order->ship_data)
+        @endif
+        <!-- 审核状态不是未退款时展示信息 -->
+        @if($order->refund_status !== \App\Models\Order::REFUND_STATUS_PENDING)
+          <div class="line">
+            <div class="line-label">审批状态： </div>
+            <div class="line-value">{{ \App\Models\Order::$refundStatusMap[$order->refund_status] }}</div>
+          </div>
+          <div class="line">
+            <div class="line-label">审批理由： </div>
+            <div class="line-value">{{ $order->extra['refund_reason' ]}}</div>
+          </div>
+        @endif
+        <!-- 审核状态是未退款时展示申请审批按钮-->
+        @if($order->refund_status === \App\Models\Order::REFUND_STATUS_PENDING)
+        <div class="refund-button">
+          <button class="btn btn-sm btn-danger" id="btn-apply-refund">申请审批</button>
+        </div>
+        @endif
       </div>
     </div>
   </div>
 </div>
 </div>
 </div>
+@endsection
+
+@section('scriptsAfterJs')
+<script>
+  $(document).ready(function () {
+    $('#btn-apply-refund').click(function (){
+      swal({
+        text: '请输入审批理由,是否已付款',
+        content: "input",
+      }).then(function (input) {
+        if(!input) {
+          swal('审批理由不可为空','','error');
+          return;
+        }
+        //
+        axios.post('{{ route('orders.pay_confirm', [$order->id]) }}', {resaon: input})
+          .then(function (){
+            swal('申请审批成功','','success').then(function () {
+              location.reload();
+            });
+          });
+      });
+    });
+  });
+</script>
 @endsection

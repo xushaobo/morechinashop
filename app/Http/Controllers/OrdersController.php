@@ -60,11 +60,11 @@ class OrdersController extends Controller
         }
         // 将用户输入的审批理由放到订单的 extra 字段中
         $extra                  = $order->extra ?: [];
-        $extra['refund_reason'] = $request->input('reason');
+        $extra['refund_reason'] = $request->input('data');
         // 将订单申请审批状态改为已申请退款
         $order->update([
             'refund_status' => Order::REFUND_STATUS_APPLIED,
-            'extra'         => $extra,
+            'extra'         => $extra['refund_reason'],
         ]);
 
         return $order;

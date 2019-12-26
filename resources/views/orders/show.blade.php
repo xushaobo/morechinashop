@@ -78,7 +78,7 @@
           </div>
           <div class="line">
             <div class="line-label">审批理由： </div>
-            <div class="line-value">{{ $order->extra['refund_reason' ]}}</div>
+            <div class="line-value">{{ $order->extra['refund_reason'] }}</div>
           </div>
         @endif
         <!-- 审核状态是未退款时展示申请审批按钮-->
@@ -108,7 +108,7 @@
           return;
         }
         //
-        axios.post('{{ route('orders.pay_confirm', [$order->id]) }}', {resaon: input})
+        axios.post('{{ route('orders.pay_confirm', [$order->id]) }}', {data: input})
           .then(function (){
             swal('申请审批成功','','success').then(function () {
               location.reload();

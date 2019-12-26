@@ -64,7 +64,7 @@ class OrdersController extends Controller
         // 将订单申请审批状态改为已申请退款
         $order->update([
             'refund_status' => Order::REFUND_STATUS_APPLIED,
-            'extra'         => $extra['refund_reason'],
+            'extra'         => $extra,
         ]);
 
         return $order;

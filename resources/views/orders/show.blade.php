@@ -45,6 +45,26 @@
         <div class="line"><div class="line-label">收货地址：</div><div class="line-value">{{ join(' ', $order->address) }}</div></div>
         <div class="line"><div class="line-label">订单备注：</div><div class="line-value">{{ $order->remark ?: '-' }}</div></div>
         <div class="line"><div class="line-label">订单编号：</div><div class="line-value">{{ $order->no }}</div></div>
+        <!-- 如果有物流信息则展示 -->
+        @if($order->ship_data)
+        @endif
+        <!-- 审核状态不是未退款时展示信息 -->
+        @if($order->refund_status !== \App\Models\Order::REFUND_STATUS_PENDING)
+          <div class="line">
+            <div class="line-label">审批状态： </div>
+            <div class="line-value">{{ \App\Models\Order::$refundStatusMap[$order->refund_status] }}</div>
+          </div>
+          <div class="line">
+            <div class="line-label">审批理由： </div>
+            <div class="line-value">{{ $order->extra['refund_reason'] }}</div>
+          </div>
+        @endif
+        <!-- 审核状态是未退款时展示申请审批按钮-->
+        @if($order->refund_status === \App\Models\Order::REFUND_STATUS_PENDING)
+        <div class="refund-button">
+          <button class="btn btn-sm btn-danger" id="btn-apply-refund">申请审批</button>
+        </div>
+        @endif
       </div>
       <div class="order-summary text-right">
         <div class="total-amount">
@@ -67,26 +87,6 @@
             @endif
           </div>
         </div>
-        <!-- 如果有物流信息则展示 -->
-        @if($order->ship_data)
-        @endif
-        <!-- 审核状态不是未退款时展示信息 -->
-        @if($order->refund_status !== \App\Models\Order::REFUND_STATUS_PENDING)
-          <div class="line">
-            <div class="line-label">审批状态： </div>
-            <div class="line-value">{{ \App\Models\Order::$refundStatusMap[$order->refund_status] }}</div>
-          </div>
-          <div class="line">
-            <div class="line-label">审批理由： </div>
-            <div class="line-value">{{ $order->extra['refund_reason'] }}</div>
-          </div>
-        @endif
-        <!-- 审核状态是未退款时展示申请审批按钮-->
-        @if($order->refund_status === \App\Models\Order::REFUND_STATUS_PENDING)
-        <div class="refund-button">
-          <button class="btn btn-sm btn-danger" id="btn-apply-refund">申请审批</button>
-        </div>
-        @endif
       </div>
     </div>
   </div>

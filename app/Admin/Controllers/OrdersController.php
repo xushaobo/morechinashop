@@ -9,6 +9,7 @@ use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use App\Exceptions\InvalidRequestException;
+use App\Http\Requests\Admin\HandlePayConfirmRequest;
 
 class OrdersController extends Controller
 {
@@ -42,7 +43,7 @@ class OrdersController extends Controller
         $grid->ship_status('物流')->display(function($value){
             return Order::$shipStatusMap[$value];
         });
-        $grid->refund_status('退款状态')->display(function($value){
+        $grid->refund_status('审批状态')->display(function($value){
             return Order::$refundStatusMap[$value];
         });
         //禁用创建按钮
@@ -84,5 +85,25 @@ class OrdersController extends Controller
         ]);
 
         return redirect()->back();
+    }
+
+    public function handlePayConfirm(Order $order,HandlePayConfirmRequest $request)
+    {
+        if($order->refund_status !== Order::REFUND_STATUS_APPLIED){
+            throw new InvalidRequestException('订单状态不正确');
+        }
+    
+        if($request->input('aggree')){
+
+        } else {
+            //将拒绝的理由放到订单的extra字段中 
+            $extra = $order->extra ?: [];
+            $extra['refund_disagree_reason'] = $request->input('reason');
+            $order->update([
+                'refund_status' => Order::REFUND_STATUS_PENDING,
+                'extra' => $extra,
+            ]);
+        }
+        return $order;
     }
 }

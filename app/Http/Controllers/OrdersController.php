@@ -11,6 +11,7 @@ use App\Services\OrderService;
 use App\Events\OrderCreated;
 
 use App\Http\Requests\PayConfirmRequest;
+use App\Http\Requests\Admin\HandlePayConfirmRequest;
 
 class OrdersController extends Controller
 {
@@ -69,4 +70,5 @@ class OrdersController extends Controller
 
         return $order;
     }
+
 }

@@ -151,5 +151,9 @@ $(document).ready(function() {
       });
     });
   });
+
+  $('#btn-refund-agree').click(function(){
+    alert("aaaa");
+  });
 });
 </script>

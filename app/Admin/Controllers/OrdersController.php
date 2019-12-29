@@ -11,6 +11,8 @@ use Illuminate\Http\Request;
 use App\Exceptions\InvalidRequestException;
 use App\Http\Requests\Admin\HandlePayConfirmRequest;
 
+use App\Exceptions\InternalException;
+
 class OrdersController extends Controller
 {
     use HasResourceActions;
@@ -94,7 +96,14 @@ class OrdersController extends Controller
         }
     
         if($request->input('aggree')){
-
+            //清空拒绝审批理由
+            $extra = $order->extra ?: [];
+            unset($extra['refund_disagree_reason']);
+            $order->update([
+                'extra' => $extra,
+            ]);
+            //调用审批逻辑 func: _payconfirmOrder()
+            $this->_payconfirmOrder($order);
         } else {
             //将拒绝的理由放到订单的extra字段中 
             $extra = $order->extra ?: [];
@@ -105,5 +114,10 @@ class OrdersController extends Controller
             ]);
         }
         return $order;
+    }
+
+    protected function _payconfirmOrder(Order $order)
+    {
+        dd("11111");
     }
 }

@@ -107,11 +107,11 @@
 
 <script>
 $(document).ready(function() {
-  // 不同意 按钮的点击事件
-  $('#btn-refund-disagree').click(function() {
+  // 同意 按钮的点击事件
+  $('#btn-refund-agree').click(function() {
     // Laravel-Admin 使用的 SweetAlert 版本与我们在前台使用的版本不一样，因此参数也不太一样
     swal({
-      title: '输入拒绝理由',
+      title: '输入审批理由',
       input: 'text',
       showCancelButton: true,
       confirmButtonText: "确认",
@@ -152,8 +152,8 @@ $(document).ready(function() {
     });
   });
 
-  $('#btn-refund-agree').click(function(){
-    alert("aaaa");
+  $('#btn-refund-disagree').click(function(){
+    alert("不同意审批，等待ing");
   });
 });
 </script>

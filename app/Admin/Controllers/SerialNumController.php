@@ -39,9 +39,9 @@ class SerialNumController extends Controller
 		{
 			$grid = new Grid(new SerialNum);
 			$grid->id('ID')->sortable();
-			$grid->product_id('产品货号');
-			$grid->serialNum_id('序列号');
-			$grid->orderNum_id('所属订单号');
+			$grid->product_id('产品货号')->sortable();
+			$grid->serialNum_id('序列号')->sortable();
+			$grid->orderNum_id('所属订单号')->sortable();
 
 	
 			$grid->actions(function ($actions) {

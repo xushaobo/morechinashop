@@ -34,4 +34,11 @@ Route::group([
     $router->post('orders/{order}/ship', 'OrdersController@ship')->name('admin.orders.ship');
 
     $router->post('orders/{order}payconfirm','OrdersController@handlePayConfirm')->name('admin.orders.handle_payconfirm');
+
+
+    $router->get('serial_num', 'SerialNumController@index');
+    $router->get('serial_num/create', 'SerialNumController@create');
+    $router->post('serial_num', 'SerialNumController@store');
+    $router->get('serial_num/{id}/edit', 'SerialNumController@edit');
+    $router->put('serial_num/{id}', 'SerialNumController@update');
 });

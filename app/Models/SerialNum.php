@@ -7,12 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class SerialNum extends Model
 {
   protected $fillable = [
+    'product_id',
 	  'serialNum_id',
-	  'orderNum_id'
+    'orderNum_id',
+    'created_at',
+    'updated_at',
   ];  
 
-  public function serialnum()
-  {
-	  return $this->belongsTo(ProductSku::class);
-  }
 }

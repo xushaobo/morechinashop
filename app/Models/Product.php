@@ -10,11 +10,19 @@ class Product extends Model
 {
     protected $fillable = [
         'title', 'description', 'image', 'on_sale',
-        'rating', 'sold_count', 'review_count', 'price'
+        'rating', 'sold_count', 'review_count', 'price',
+	'type',
     ];
     protected $casts = [
         'on_sale' => 'bollean', // on_sale是一个布尔类型的字段
     ];
+
+    const TYPE_NORMAL = 'normal';
+    const TYPE_SERIALNUM = 'serialnum';
+    public static $typeMap = [
+	    self::TYPE_NORMAL => '普通商品',
+	    self::TYPE_SERIALNUM => '产品序列号',
+	];
 
     //与商品SKU关联
     public function skus()
@@ -41,4 +49,8 @@ class Product extends Model
         return $this->hasMany(ProductProperty::class);
     }
 
+    public function serialnum()
+    {
+	return $this->hasOne(SerialNum::class);
+    }
 }

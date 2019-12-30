@@ -15,7 +15,11 @@ class CreateSerialNumsTable extends Migration
     {
         Schema::create('serial_nums', function (Blueprint $table) {
             $table->increments('id');
-            $table->timestamps();
+            $table->unsignedInteger('product_id');
+	    $table->foreign('product_id')->references('product_id')->on('product_skus')->onDelete('cascade');
+	    $table->string('serialNum_id');
+	    $table->string('orderNum_id')->default('not_save');
+	    $table->timestamps();
         });
     }
 

@@ -8,6 +8,7 @@ class ProductProperty extends Model
 {
 
     protected $fillable = ['name','value'];
+    public $timestamps = false;
 
     public function prodduct()
     {

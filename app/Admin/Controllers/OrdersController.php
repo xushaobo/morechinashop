@@ -109,7 +109,7 @@ class OrdersController extends Controller
             $extra = $order->extra ?: [];
             $extra['refund_disagree_reason'] = $request->input('reason');
             $order->update([
-                'refund_status' => Order::REFUND_STATUS_PENDING,
+                'refund_status' => Order::REFUND_STATUS_SUCCESS,
                 'extra' => $extra,
             ]);
         }

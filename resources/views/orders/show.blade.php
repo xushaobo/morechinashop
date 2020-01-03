@@ -143,7 +143,7 @@
         //
         axios.post('{{ route('orders.price_update', [$order->id]) }}', {price: input})
           .then(function (){
-            swal('申请审批成功','','success').then(function () {
+            swal('修改成功','','success').then(function () {
               location.reload();
             });
           });

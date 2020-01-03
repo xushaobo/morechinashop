@@ -62,8 +62,8 @@ class SerialNumController extends Controller
 			$form = new Form(new SerialNum);
 	
 			// 在表单中添加一个名为 type，值为 Product::TYPE_CROWDFUNDING 的隐藏字段
-			$form->text('product_id', '产品货号')->rules('required');
-			$form->text('serialNum_id', '序列号')->rules('required');
+			$form->text('product_id', '产品货号')->rules('required')->default('201301');
+			$form->text('serialNum_id', '序列号')->rules('required')->default('1932');
 			$form->text('orderNum_id','所属订货号')->default('not save');
 	
 			return $form;

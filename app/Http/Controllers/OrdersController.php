@@ -76,12 +76,6 @@ class OrdersController extends Controller
       public function priceUpdate(Order $order, PriceUpdateRequest $request)
     {
         $this->authorize('own',$order);
-        // 校验订单是否属于当前用户
-        // 判断订单是否已付款
-        //if (!$order->paid_at) {
-        //    throw new InvalidRequestException('该订单未支付，不可退款');
-        //}
-        // 判断订单申请审批状态是否正确
         if ($order->refund_status !== Order::REFUND_STATUS_PENDING) {
             throw new InvalidRequestException('该订单已提交领导申批，请勿重复申请');
         }
@@ -90,7 +84,7 @@ class OrdersController extends Controller
         $total_price['total_price'] = $request->input('price');
         // 将订单申请审批状态改为已申请退款
         $order->update([
-            'total_price'         => $total_price,
+            'total_amount'         => $total_price['total_price'],
         ]);
 
         return $order;

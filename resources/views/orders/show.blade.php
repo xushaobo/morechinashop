@@ -45,8 +45,17 @@
         <div class="line"><div class="line-label">收货地址：</div><div class="line-value">{{ join(' ', $order->address) }}</div></div>
         <div class="line"><div class="line-label">订单备注：</div><div class="line-value">{{ $order->remark ?: '-' }}</div></div>
         <div class="line"><div class="line-label">订单编号：</div><div class="line-value">{{ $order->no }}</div></div>
+        <!-- 输出物流状态 -->
+        <div class="line">
+          <div class="line-label">物流状态：</div>
+          <div class="line-value">{{ \App\Models\Order::$shipStatusMap[$order->ship_status] }}</div>
+        </div>
         <!-- 如果有物流信息则展示 -->
         @if($order->ship_data)
+        <div class="line">
+          <div class="line-label">物流信息：</div>
+          <div class="line-value">{{ $order->ship_data['express_company'] }} {{ $order->ship_data['express_no'] }}</div>
+        </div>
         @endif
         <!-- 审核状态不是未退款时展示信息 -->
         @if($order->refund_status !== \App\Models\Order::REFUND_STATUS_PENDING)
@@ -61,8 +70,12 @@
         @endif
         <!-- 审核状态是未退款时展示申请审批按钮-->
         @if($order->refund_status === \App\Models\Order::REFUND_STATUS_PENDING)
+         <div class="refund-button">
+          <button class="btn btn-sm btn-danger" id="btn-apply-refund0">1.修改订单总价</button>
+        </div>
+
         <div class="refund-button">
-          <button class="btn btn-sm btn-danger" id="btn-apply-refund">申请审批</button>
+          <button class="btn btn-sm btn-danger" id="btn-apply-refund">2.申请审批</button>
         </div>
         @endif
       </div>
@@ -74,17 +87,11 @@
         <div>
           <span>订单状态：</span>
           <div class="value">
-            @if($order->paid_at)
               @if($order->refund_status === \App\Models\Order::REFUND_STATUS_PENDING)
                 已支付
               @else
                 {{ \App\Models\Order::$refundStatusMap[$order->refund_status] }}
               @endif
-            @elseif($order->closed)
-              已关闭
-            @else
-              未支付
-            @endif
           </div>
           @if(isset($order->extra['refund_disagree_reason']))
           <div>
@@ -115,6 +122,26 @@
         }
         //
         axios.post('{{ route('orders.pay_confirm', [$order->id]) }}', {data: input})
+          .then(function (){
+            swal('申请审批成功','','success').then(function () {
+              location.reload();
+            });
+          });
+      });
+    });
+  });
+  $(document).ready(function () {
+    $('#btn-apply-refund0').click(function (){
+      swal({
+        text: '请输入金额',
+        content: "input",
+      }).then(function (input) {
+        if(!input) {
+          swal('金额不可为空','','error');
+          return;
+        }
+        //
+        axios.post('{{ route('orders.price_update', [$order->id]) }}', {price: input})
           .then(function (){
             swal('申请审批成功','','success').then(function () {
               location.reload();

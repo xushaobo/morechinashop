@@ -14,13 +14,13 @@
         <td>买家：</td>
         <td>{{ $order->user->name }}</td>
         <td>支付时间：</td>
-        <td>{{ $order->paid_at ? $order->paid_at->format('Y-m-d H:i:s') : '未支付' }}</td>
+        <td>{{ $order->paid_at ? $order->paid_at->format('Y-m-d H:i:s') : '已支付' }}</td>
       </tr>
       <tr>
         <td>支付方式：</td>
-        <td>{{ $order->payment_method ? $order->payment_method:'未支付' }}</td>
+        <td>{{ $order->payment_method ? $order->payment_method:'已支付' }}</td>
         <td>支付渠道单号：</td>
-        <td>{{ $order->payment_no ? $order->payment_no:'未支付' }}</td>
+        <td>{{ $order->payment_no ? $order->payment_no:'已支付' }}</td>
       </tr>
       <tr>
         <td>收货地址</td>
@@ -46,7 +46,22 @@
         <td>发货状态：</td>
         <td>{{ \App\Models\Order::$shipStatusMap[$order->ship_status] }}</td>
       </tr>
-      <!-- 订单发货开始 -->
+     
+
+      @if($order->refund_status !== \App\Models\Order::REFUND_STATUS_PENDING)
+  <tr>
+    <td>审批状态：</td>
+    <td colspan="2">{{ \App\Models\Order::$refundStatusMap[$order->refund_status] }}，申请理由：{{ $order->extra['refund_reason'] }}</td>
+    <td>
+      <!-- 如果订审批状态是已申请，则展示处理按钮 -->
+      @if($order->refund_status === \App\Models\Order::REFUND_STATUS_APPLIED)
+      <button class="btn btn-sm btn-success" id="btn-refund-agree">同意</button>
+      <button class="btn btn-sm btn-danger" id="btn-refund-disagree">不同意</button>
+      @endif
+    </td>
+  </tr>
+  @endif
+ <!-- 订单发货开始 -->
       <!-- 如果订单未发货，展示发货表单 -->
       @if($order->ship_status === \App\Models\Order::SHIP_STATUS_PENDING)
       <tr>
@@ -87,19 +102,6 @@
       @endif
       <!-- 订单发货结束 -->
 
-      @if($order->refund_status !== \App\Models\Order::REFUND_STATUS_PENDING)
-  <tr>
-    <td>审批状态：</td>
-    <td colspan="2">{{ \App\Models\Order::$refundStatusMap[$order->refund_status] }}，申请理由：{{ $order->extra['refund_reason'] }}</td>
-    <td>
-      <!-- 如果订审批状态是已申请，则展示处理按钮 -->
-      @if($order->refund_status === \App\Models\Order::REFUND_STATUS_APPLIED)
-      <button class="btn btn-sm btn-success" id="btn-refund-agree">同意</button>
-      <button class="btn btn-sm btn-danger" id="btn-refund-disagree">不同意</button>
-      @endif
-    </td>
-  </tr>
-  @endif
       </tbody>
     </table>
   </div>

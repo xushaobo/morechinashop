@@ -64,7 +64,7 @@
       </div>
     </div>
     <div class="form-group row">
-      <label class="col-form-label col-sm-3 text-md-right">备注</label>
+      <label class="col-form-label col-sm-3 text-md-right">填写单位名称</label>
       <div class="col-sm-9 col-md-7">
         <textarea name="remark" class="form-control" rows="3"></textarea>
       </div>

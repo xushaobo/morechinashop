@@ -15,6 +15,8 @@ use App\Http\Requests\PriceUpdateRequest;
 use App\Http\Requests\Admin\HandlePayConfirmRequest;
 use App\Exceptions\InvalidRequestException;
 
+use Carbon\Carbon;
+
 class OrdersController extends Controller
 {
     public function store(OrderRequest $request, OrderService $orderService)
@@ -66,6 +68,7 @@ class OrdersController extends Controller
         $extra['refund_reason'] = $request->input('data');
         // 将订单申请审批状态改为已申请退款
         $order->update([
+            'paid_at' => Carbon::now(),
             'refund_status' => Order::REFUND_STATUS_APPLIED,
             'extra'         => $extra,
         ]);

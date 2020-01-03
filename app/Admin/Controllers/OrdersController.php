@@ -42,6 +42,7 @@ class OrdersController extends Controller
         $grid->column('user.name','买家');
         $grid->total_amount('总金额')->sortable();
         $grid->paid_at('支付时间')->sortable();
+        $grid->remark('单位名称')->sortable();
         $grid->ship_status('物流')->display(function($value){
             return Order::$shipStatusMap[$value];
         });

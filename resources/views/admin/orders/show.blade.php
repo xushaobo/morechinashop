@@ -61,6 +61,12 @@
     </td>
   </tr>
   @endif
+  @if($order->refund_status == \App\Models\Order::REFUND_STATUS_SUCCESS)
+  <tr>
+      <td>同意申批理由：</td>
+      <td colspan="1">{{ $order->extra['refund_disagree_reason'] }}</td>
+  </tr>
+  @endif
  <!-- 订单发货开始 -->
       <!-- 如果订单未发货，展示发货表单 -->
       @if($order->ship_status === \App\Models\Order::SHIP_STATUS_PENDING)

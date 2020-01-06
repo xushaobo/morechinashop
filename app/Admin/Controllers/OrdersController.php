@@ -62,6 +62,13 @@ class OrdersController extends Controller
                 $batch->disableDelete();
             });
         });
+
+        $grid->filter(function($filter){
+            $filter->disableIdFilter();
+
+            $filter->like('remark','单位名称');
+            $filter->like('paid_at','支付时间');
+        });
         return $grid;
     }
 

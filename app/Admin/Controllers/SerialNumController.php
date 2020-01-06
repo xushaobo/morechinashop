@@ -53,7 +53,14 @@ class SerialNumController extends Controller
 					$batch->disableDelete();
 				});
 			});
+
+			$grid->filter(function($filter){
+				$filter->disableIdFilter();
 	
+				$filter->like('product_id','产品货号');
+				$filter->like('serialNum_id','序列号');
+				$filter->like('orderNum_id','所属订单号');
+			});
 			return $grid;
 		}
 	

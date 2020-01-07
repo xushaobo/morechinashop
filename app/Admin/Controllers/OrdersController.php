@@ -46,7 +46,7 @@ class OrdersController extends Controller
         $grid->ship_status('物流')->display(function($value){
             return Order::$shipStatusMap[$value];
         });
-        $grid->refund_status('审批状态')->display(function($value){
+        $grid->refund_status('审批状态')->sortable()->display(function($value){
             return Order::$refundStatusMap[$value];
         });
         //禁用创建按钮
@@ -66,6 +66,8 @@ class OrdersController extends Controller
         $grid->filter(function($filter){
             $filter->disableIdFilter();
 
+            $filter->like('no','单订流水号');
+            $filter->like('user.name','买家');
             $filter->like('remark','单位名称');
             $filter->like('paid_at','支付时间');
         });

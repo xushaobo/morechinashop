@@ -5,6 +5,8 @@
  * building robust, powerful web applications using Vue and Laravel.
  */
 
+require('./select2.min');
+
 require('./bootstrap');
 
 window.Vue = require('vue');

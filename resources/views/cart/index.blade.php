@@ -45,6 +45,7 @@
           </td>
           <td>
             <button class="btn btn-sm btn-danger btn-remove">移除</button>
+            <button class="btn btn-sm btn-danger btn-price-update">修改价格</button>
           </td>
         </tr>
       @endforeach
@@ -109,6 +110,28 @@
           })
       });
     });
+
+
+    $('.btn-price-update').click(function () {
+      // $(this) 可以获取到当前点击的 移除 按钮的 jQuery 对象
+      // closest() 方法可以获取到匹配选择器的第一个祖先元素，在这里就是当前点击的 移除 按钮之上的 <tr> 标签
+      // data('id') 方法可以获取到我们之前设置的 data-id 属性的值，也就是对应的 SKU id
+      var id = $(this).closest('tr').data('id');
+      swal({
+		text: '请输入金额',
+		content: 'input',
+	 }).then(function (input) {
+		if(!input) {
+		 swal('金额不可为空','','error');
+		return;
+		}
+    });
+
+
+
+
+
+
 
 	 // 监听 全选/取消全选 单选框的变更事件
     $('#select-all').change(function() {

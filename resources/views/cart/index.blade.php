@@ -125,6 +125,8 @@
 		 swal('金额不可为空','','error');
 		return;
 		}
+	alert("hello");
+    });
     });
 
 

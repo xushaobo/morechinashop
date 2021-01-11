@@ -6,6 +6,8 @@ use Auth;
 use App\Models\CartItem;
 use App\Models\Product;
 
+use Illuminate\Support\Facades\DB;
+
 class CartService
 {
     public function get()
@@ -47,8 +49,7 @@ class CartService
 	if (!is_array($skuIds)) {
 	    $skuIds = [$skuIds];
 	}
-       // Auth::user()->cartItems()->whereIn('product_sku_id', $skuIds)->delete();
-	$res = DB::table('products')->where('id',41)->update(['price'=>2222]);
- 	
+        Auth::user()->cartItems()->whereIn('product_sku_id', $skuIds)->delete();
      }
+	
 }

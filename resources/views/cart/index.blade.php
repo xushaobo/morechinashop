@@ -126,6 +126,11 @@
 		return;
 		}
 	alert("hello");
+
+        axios.post('{{ route('cart.priceUpdate')
+          .then(function () {
+            location.reload();
+          })
     });
     });
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Http\Requests\AddCartRequest;
 use App\Models\ProductSku;
+use App\Models\Product;
 use App\Services\CartService;
 
 class CartController extends Controller
@@ -37,5 +38,11 @@ class CartController extends Controller
         $this->cartService->remove($sku->id);
 
         return [];
+    }
+
+    public function priceUpdate(ProductSku $sku, Request $request)
+    {
+	$this->cartService->priceUpdate($sku->id);
+	return [];
     }
 }

@@ -49,7 +49,7 @@ class CartService
 	if (!is_array($skuIds)) {
 	    $skuIds = [$skuIds];
 	}
-        Auth::user()->cartItems()->whereIn('product_sku_id', $skuIds)->delete();
+	$data=DB::update("update product_skus set price=1111 where  id=?",['153']);
+	var_dump($data);
      }
-	
 }

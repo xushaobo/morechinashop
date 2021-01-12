@@ -5,6 +5,7 @@ namespace App\Services;
 use Auth;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Models\ProductSku;
 
 use Illuminate\Support\Facades\DB;
 

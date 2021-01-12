@@ -127,7 +127,7 @@
 		}
 	alert("hello");
 
-        axios.post('{{ route('cart.priceUpdate') }}')
+        axios.post('{{ route('cart.priceUpdate', [id]) }}', {price: input})
           .then(function () {
             location.reload();
           })

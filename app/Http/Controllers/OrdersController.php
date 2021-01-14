@@ -87,7 +87,7 @@ class OrdersController extends Controller
         $total_price['total_price'] = $request->input('price');
         // 将订单申请审批状态改为已申请退款
         $order->update([
-            'total_amount'         => $total_price['total_price'],
+            'total_amount'         => $request->input('price'),
         ]);
 
         return $order;

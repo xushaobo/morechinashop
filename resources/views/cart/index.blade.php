@@ -125,9 +125,8 @@
 		 swal('金额不可为空','','error');
 		return;
 		}
-	alert("hello");
 
-        axios.post('{{ route('cart.priceUpdate', [id]) }}', {price: input})
+	axios.post('/cart/' + id, {price: input})
           .then(function () {
             location.reload();
           })

@@ -50,7 +50,10 @@ class CartService
 	if (!is_array($skuIds)) {
 	    $skuIds = [$skuIds];
 	}
-	$data=DB::update("update product_skus set price=1111 where  id=?",['153']);
-	var_dump($data);
+	$data=DB::table('product_skus')
+	->where('id', $skuIds)
+	->update(array(
+		'price' => 6666666
+	));
      }
 }

@@ -7,6 +7,7 @@ use App\Http\Requests\AddCartRequest;
 use App\Models\ProductSku;
 use App\Models\Product;
 use App\Services\CartService;
+use App\Http\Requests\PriceUpdateRequest;
 
 class CartController extends Controller
 {
@@ -42,7 +43,7 @@ class CartController extends Controller
 
     public function priceUpdate(ProductSku $sku, Request $request)
     {
-	$this->cartService->priceUpdate($sku->id);
+	$this->cartService->priceUpdate($sku->id, $request->input('price'));
 	return [];
     }
 }

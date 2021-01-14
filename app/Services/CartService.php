@@ -45,7 +45,7 @@ class CartService
         Auth::user()->cartItems()->whereIn('product_sku_id', $skuIds)->delete();
     }
 
-     public function priceUpdate($skuIds)
+     public function priceUpdate($skuIds, $price)
      {
 	if (!is_array($skuIds)) {
 	    $skuIds = [$skuIds];
@@ -53,7 +53,7 @@ class CartService
 	$data=DB::table('product_skus')
 	->where('id', $skuIds)
 	->update(array(
-		'price' => 6666666
+		'price' => $price 
 	));
      }
 }

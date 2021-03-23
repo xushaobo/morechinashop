@@ -13,6 +13,7 @@
         <th><input type="checkbox" id="select-all"></th>
         <th>商品信息</th>
         <th>单价</th>
+        <th>成本价</th>
         <th>数量</th>
         <th>操作</th>
       </tr>
@@ -40,6 +41,7 @@
             </div>
           </td>
           <td><span class="price">￥{{ $item->productSku->price }}</span></td>
+          <td><span class="price">￥{{ $item->productSku->stock_price }}</span></td>
           <td>
             <input type="text" class="form-control form-control-sm amount" @if(!$item->productSku->product->on_sale) disabled @endif name="amount" value="{{ $item->amount }}">
           </td>

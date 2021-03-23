@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ProductSku extends Model
 {
-    protected $fillable = ['title', 'description','price','stock'];
+    protected $fillable = ['title', 'description','price','stock_price','stock'];
 
     public function product()
     {

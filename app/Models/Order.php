@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-	const REFUND_STATUS_PENDING = 'pending';
+    const REFUND_STATUS_PENDING = 'pending';
     const REFUND_STATUS_APPLIED = 'applied';
     const REFUND_STATUS_PROCESSING = 'processing';
     const REFUND_STATUS_SUCCESS = 'success';
@@ -34,6 +34,7 @@ class Order extends Model
         'no',
         'address',
         'total_amount',
+	'total_stock_amount',
         'remark',
         'paid_at',
         'payment_method',

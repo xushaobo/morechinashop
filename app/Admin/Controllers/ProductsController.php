@@ -129,6 +129,7 @@ class ProductsController extends Controller
             $form->text('title', 'SKU 名称')->rules('required');
             $form->text('description', 'SKU 描述')->rules('required');
             $form->text('price', '单价')->rules('required|numeric');
+            $form->text('stock_price', '成本价')->rules('required|numeric');
             $form->text('stock', '剩余库存')->rules('required|integer|min:0');
         });
 

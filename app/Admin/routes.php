@@ -30,6 +30,7 @@ Route::group([
     $router->get('api/categories', 'CategoriesController@apiIndex');
 
     $router->get('orders', 'OrdersController@index')->name('admin.orders.index');
+    $router->get('stocks', 'OrderItemsController@index')->name('admin.orderItems.index');
     $router->get('orders/{order}', 'OrdersController@show')->name('admin.orders.show');
     $router->post('orders/{order}/ship', 'OrdersController@ship')->name('admin.orders.ship');
 

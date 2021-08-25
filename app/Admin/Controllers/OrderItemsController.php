@@ -22,6 +22,11 @@ class OrderItemsController extends Controller
     {
         $grid = new Grid(new OrderItem);
 	//展示关联关系的字段时，使用column方法
+//	$grid->number('序号');
+//	$grid->rows(function ($row, $number) {
+//	  $row->column('number', $number);
+//	});
+	$grid->column('order.id','序号')->sortable();
 	$grid->column('order.paid_at','下单日期')->sortable();
 	$grid->column('order.remark','单位名称')->sortable();
 	$grid->column('productSku.title','型号')->sortable();

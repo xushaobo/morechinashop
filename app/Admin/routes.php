@@ -21,7 +21,7 @@ Route::group([
     $router->put('products/{id}','ProductsController@update');
 
 
-	$router->get('categories', 'CategoriesController@index');
+    $router->get('categories', 'CategoriesController@index');
     $router->get('categories/create', 'CategoriesController@create');
     $router->get('categories/{id}/edit', 'CategoriesController@edit');
     $router->post('categories', 'CategoriesController@store');
@@ -42,4 +42,10 @@ Route::group([
     $router->post('serial_num', 'SerialNumController@store');
     $router->get('serial_num/{id}/edit', 'SerialNumController@edit');
     $router->put('serial_num/{id}', 'SerialNumController@update');
+
+    $router->get('repairs', 'RepairsController@index');
+    $router->get('repairs/create', 'RepairsController@create');
+    $router->post('repairs', 'RepairsController@store');
+    $router->get('repairs/{id}/edit', 'RepairsController@edit');
+    $router->put('repairs/{id}', 'RepairsController@update');
 });

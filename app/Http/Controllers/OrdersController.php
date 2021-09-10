@@ -78,21 +78,15 @@ class OrdersController extends Controller
 
       public function priceUpdate(Order $order, PriceUpdateRequest $request)
     {
-	/*
-        $this->authorize('own',$order);
-        if ($order->refund_status !== Order::REFUND_STATUS_PENDING) {
-            throw new InvalidRequestException('该订单已提交领导申批，请勿重复申请');
-        }
-        // 将用户输入的审批理由放到订单的 extra 字段中
-        $total_price = $order->total_price ?: [];
-        $total_price['total_price'] = $request->input('price');
-        // 将订单申请审批状态改为已申请退款
         $order->update([
-            'total_amount'         => $request->input('price'),
+	    'closed'               => true
         ]);
+	foreach ($order->items as $item) {
+	  $item->productSku->addStock($item->amount);
+	}
+	$order->delete();
 
-        return $order;
-	*/
+	return $order;
 	
     }
 

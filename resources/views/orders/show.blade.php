@@ -134,17 +134,17 @@
 
     $('#btn-apply-refund0').click(function (){
       swal({
-        text: '请输入金额',
-        content: "input",
+        text: '确认删除',
       }).then(function (input) {
         if(!input) {
           swal('金额不可为空','','error');
           return;
         }
+	
         //
         axios.post('{{ route('orders.price_update', [$order->id]) }}', {price: input})
           .then(function (){
-            swal('修改成功','','success').then(function () {
+            swal('删除成功','','success').then(function () {
               location.reload();
             });
           });

@@ -8,7 +8,7 @@ class Repair extends Model
 {
   public $timestamps = false;
   protected $fillable = [
-	'repair_date','customer_name','phone','seller','brand','type','serial_num','bad_description','ifunderwarry','howtodo','des_add','finfish_date','mail_info','ifreturntoBJ','howtodo_BJ','returnBJ_date','remark'
+	'repair_date','customer_name','phone','seller','brand','type','serial_num','bad_description','ifunderwarry','howtodo','des_add','finfish_date','mail_info','ifreturntoBJ','howtodo_BJ','returnBJ_date','remark','main_info2','pay'
   ];
   
   protected $dates = ['repair_dtae','finfish_date','returnBJ_date'

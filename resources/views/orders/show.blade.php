@@ -72,6 +72,9 @@
         @if($order->refund_status === \App\Models\Order::REFUND_STATUS_PENDING)
 
         <div class="refund-button">
+          <button class="btn btn-sm btn-warning" id="btn-apply-refund0">1.删除订单（自动加库存）</button>
+        </div>
+        <div class="refund-button">
           <button class="btn btn-sm btn-danger" id="btn-apply-refund">2.申请审批</button>
         </div>
         @endif
@@ -128,6 +131,7 @@
     });
   });
   $(document).ready(function () {
+
     $('#btn-apply-refund0').click(function (){
       swal({
         text: '请输入金额',

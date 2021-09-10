@@ -78,6 +78,7 @@ class OrdersController extends Controller
 
       public function priceUpdate(Order $order, PriceUpdateRequest $request)
     {
+	/*
         $this->authorize('own',$order);
         if ($order->refund_status !== Order::REFUND_STATUS_PENDING) {
             throw new InvalidRequestException('该订单已提交领导申批，请勿重复申请');
@@ -91,6 +92,8 @@ class OrdersController extends Controller
         ]);
 
         return $order;
+	*/
+	
     }
 
 }

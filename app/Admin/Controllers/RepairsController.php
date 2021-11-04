@@ -102,8 +102,8 @@ $grid->actions(function ($actions) {
 	$form->radio('ifreturntoBJ', '是否返厂')->options(['1' => '是', '0'=> '否'])->default('0');
         $form->text('mail_info', __('邮寄状态'));
         $form->textarea('howtodo_BJ', __('厂家处理办法'));
-        $form->date('finfish_date', __('申保返回时间'))->default(date('Y-m-d'));
-        $form->date('returnBJ_date', __('寄回客户时间'))->default(date('Y-m-d'));
+        $form->date('finfish_date', __('申保返回时间'))->default(date('0-0-0'));
+        $form->date('returnBJ_date', __('寄回客户时间'))->default(date('0-0-0'));
         $form->text('main_info2', __('寄回客户状态/单号'))->default('0');
         $form->text('pay', __('收费'))->default('无');
         return $form;

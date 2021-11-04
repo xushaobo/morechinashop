@@ -67,6 +67,9 @@
             <div class="line-label">审批理由： </div>
             <div class="line-value">{{ $order->extra['refund_reason'] }}</div>
           </div>
+        <div class="refund-button">
+          <button class="btn btn-sm btn-warning" id="btn-apply-refund0">1.删除订单（自动加库存）</button>
+        </div>
         @endif
         <!-- 审核状态是未退款时展示申请审批按钮-->
         @if($order->refund_status === \App\Models\Order::REFUND_STATUS_PENDING)

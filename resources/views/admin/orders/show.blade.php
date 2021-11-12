@@ -46,6 +46,29 @@
         <td>发货状态：</td>
         <td>{{ \App\Models\Order::$shipStatusMap[$order->ship_status] }}</td>
       </tr>
+      <tr>
+	<td>
+          <form action="{{ route('admin.orders.ship', [$order->id]) }}" method="post" class="form-inline">
+            <!-- 别忘了 csrf token 字段 -->
+            {{ csrf_field() }}
+            <div class="form-group {{ $errors->has('serial_no') ? 'has-error' : '' }}">
+              <label for="serial_no" class="control-label">发货序列号</label>
+              <input type="text" id="serial_no" name="serial_no" value="" class="form-control" placeholder="输入序列号">
+              @if($errors->has('express_no'))
+                @foreach($errors->get('serial_no') as $msg)
+                  <span class="help-block">{{ $msg }}</span>
+                @endforeach
+              @endif
+            </div>
+            <button type="submit" class="btn btn-success" id="serial-btn">提交</button>
+          </form>
+	</td>
+      </tr>
+
+      <tr>
+        <td>序列号：</td>
+        <td>{{ $order->ship_data['co_no'] }}</td>
+      </tr>
      
 
       @if($order->refund_status !== \App\Models\Order::REFUND_STATUS_PENDING)

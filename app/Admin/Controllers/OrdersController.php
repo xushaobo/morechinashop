@@ -100,6 +100,21 @@ class OrdersController extends Controller
         return redirect()->back();
     }
 
+    public function serial(Order $order,Request $request)
+    {
+
+        $data = $this->validate($request, [
+            'serial_no' => ['required'],
+        ],[], [
+            'seria_no' => '发货序列号',
+        ]);
+        //将订单发货状态改为已发货，并存入物流信息
+        $order->update([
+            'ship_data' => $data,
+        ]);
+
+        return redirect()->back();
+    }
     public function handlePayConfirm(Order $order,HandlePayConfirmRequest $request)
     {
         if($order->refund_status !== Order::REFUND_STATUS_APPLIED){

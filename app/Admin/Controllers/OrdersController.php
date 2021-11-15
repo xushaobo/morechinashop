@@ -102,7 +102,6 @@ class OrdersController extends Controller
 
     public function serial(Order $order,Request $request)
     {
-
         $data = $this->validate($request, [
             'serial_no' => ['required'],
         ],[], [
@@ -110,7 +109,7 @@ class OrdersController extends Controller
         ]);
         //将订单发货状态改为已发货，并存入物流信息
         $order->update([
-            'ship_data' => $data,
+            'serial_data' => $data,
         ]);
 
         return redirect()->back();

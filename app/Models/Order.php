@@ -46,6 +46,7 @@ class Order extends Model
         'ship_status',
         'ship_data',
         'extra',
+	'serial_data',
     ];
 
     protected $casts = [
@@ -54,6 +55,7 @@ class Order extends Model
         'address'   => 'json',
         'ship_data' => 'json',
         'extra'     => 'json',
+	'serial_data' => 'json',
     ];
 
     protected $dates = [

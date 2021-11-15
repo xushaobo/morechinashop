@@ -58,15 +58,11 @@
             <button type="submit" class="btn btn-success" id="serial-btn">提交</button>
           </form>
 	</td>
+        <td>{{ $order->serial_data['serial_no'] }}</td>
       </tr>
 
-      <tr>
-        <td>序列号：</td>
-        <td>{{ $order->ship_data['serial_no'] }}</td>
-      </tr>
      
 
-      @if($order->refund_status !== \App\Models\Order::REFUND_STATUS_PENDING)
   <tr>
     <td>审批状态：</td>
     <td colspan="2">{{ \App\Models\Order::$refundStatusMap[$order->refund_status] }}，申请理由：{{ $order->extra['refund_reason'] }}</td>
@@ -74,11 +70,10 @@
       <!-- 如果订审批状态是已申请，则展示处理按钮 -->
       @if($order->refund_status === \App\Models\Order::REFUND_STATUS_APPLIED)
       <button class="btn btn-sm btn-success" id="btn-refund-agree">同意</button>
-      <button class="btn btn-sm btn-danger" id="btn-refund-disagree">不同意</button>
       @endif
+      <button class="btn btn-sm btn-danger" id="btn-refund-disagree">退回</button>
     </td>
   </tr>
-  @endif
   @if($order->refund_status == \App\Models\Order::REFUND_STATUS_SUCCESS)
   <tr>
       <td>同意申批理由：</td>
@@ -93,14 +88,9 @@
           <form action="{{ route('admin.orders.ship', [$order->id]) }}" method="post" class="form-inline">
             <!-- 别忘了 csrf token 字段 -->
             {{ csrf_field() }}
-            <div class="form-group {{ $errors->has('express_company') ? 'has-error' : '' }}">
+            <div class="form-group">
               <label for="express_company" class="control-label">物流公司</label>
               <input type="text" id="express_company" name="express_company" value="" class="form-control" placeholder="输入物流公司">
-              @if($errors->has('express_company'))
-                @foreach($errors->get('express_company') as $msg)
-                  <span class="help-block">{{ $msg }}</span>
-                @endforeach
-              @endif
             </div>
             <div class="form-group {{ $errors->has('express_no') ? 'has-error' : '' }}">
               <label for="express_no" class="control-label">物流单号</label>
@@ -116,7 +106,7 @@
         </td>
       </tr>
       @else
-      <!-- 否则展示物流公司和物流单号 
+      <!-- 否则展示物流公司和物流单号--> 
       <tr>
         <td>物流公司：</td>
         <td>{{ $order->ship_data['express_company'] }}</td>
@@ -124,7 +114,7 @@
         <td>{{ $order->ship_data['express_no'] }}</td>
       </tr>
       @endif
-       订单发货结束 -->
+      <!-- 订单发货结束 -->
 
       </tbody>
     </table>

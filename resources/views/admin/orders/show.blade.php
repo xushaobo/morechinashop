@@ -61,7 +61,48 @@
         <td>{{ $order->serial_data['serial_no'] }}</td>
       </tr>
 
-     
+
+
+
+      <tr>
+	<td>
+          <form action="{{ route('admin.orders.serial', [$order->id]) }}" method="post" class="form-inline">
+            <!-- 别忘了 csrf token 字段 -->
+            {{ csrf_field() }}
+            <div class="form-group {{ $errors->has('serial_no') ? 'has-error' : '' }}">
+              <label for="serial_no" class="control-label">发货序列号</label>
+              <input type="text" id="serial_no" name="serial_no" value="" class="form-control" placeholder="输入序列号">
+            </div>
+            <button type="submit" class="btn btn-success" id="serial-btn">提交</button>
+          </form>
+	</td>
+        <td>{{ $order->serial_data['serial_no'] }}</td>
+      </tr>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   <tr>
     <td>审批状态：</td>
@@ -70,13 +111,20 @@
       <!-- 如果订审批状态是已申请，则展示处理按钮 -->
       @if($order->refund_status === \App\Models\Order::REFUND_STATUS_APPLIED)
       <button class="btn btn-sm btn-success" id="btn-refund-agree">同意</button>
+      <button class="btn btn-sm btn-danger" id="btn-refund-disagree">不同意</button>
       @endif
-      <button class="btn btn-sm btn-danger" id="btn-refund-disagree">退回</button>
+      @if($order->refund_status === \App\Models\Order::REFUND_STATUS_SUCCESS)
+      <form action="{{ route('admin.orders.back', [$order->id]) }}" method="post" class="form-inline">
+            <!-- 别忘了 csrf token 字段 -->
+            {{ csrf_field() }}
+      <button type="submit" class="btn btn-sm btn-warning" id="btn-refund-success">退回</button>
+      </form>
+      @endif
     </td>
   </tr>
   @if($order->refund_status == \App\Models\Order::REFUND_STATUS_SUCCESS)
   <tr>
-      <td>同意申批理由：</td>
+      <td>同意审批理由：</td>
       <td colspan="1">{{ $order->extra['refund_disagree_reason'] }}</td>
   </tr>
   @endif

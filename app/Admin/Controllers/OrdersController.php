@@ -114,6 +114,21 @@ class OrdersController extends Controller
 
         return redirect()->back();
     }
+	
+    public function back(Order $order,Request $request)
+    {
+        $order->update([
+		'refund_status' => Order::REFUND_STATUS_APPLIED,
+	    ]);
+        return redirect()->back();
+    }
+    public function plus(Order $order,Request $request)
+    {
+        $order->update([
+		'total_amount' => $Order->total_amount,
+	    ]);
+        return redirect()->back();
+    }
     public function handlePayConfirm(Order $order,HandlePayConfirmRequest $request)
     {
         if($order->refund_status !== Order::REFUND_STATUS_APPLIED){

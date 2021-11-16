@@ -63,23 +63,21 @@
 
 
 
+      @if($order->refund_status === \App\Models\Order::REFUND_STATUS_SUCCESS)
 
       <tr>
 	<td>
-          <form action="{{ route('admin.orders.serial', [$order->id]) }}" method="post" class="form-inline">
+          <form action="{{ route('admin.orders.plus', [$order->id]) }}" method="post" class="form-inline">
             <!-- 别忘了 csrf token 字段 -->
             {{ csrf_field() }}
-            <div class="form-group {{ $errors->has('serial_no') ? 'has-error' : '' }}">
-              <label for="serial_no" class="control-label">发货序列号</label>
-              <input type="text" id="serial_no" name="serial_no" value="" class="form-control" placeholder="输入序列号">
-            </div>
-            <button type="submit" class="btn btn-success" id="serial-btn">提交</button>
+              <label for="total_amount" class="control-label">修改订单总金额</label>
+              <input type="text" id="total_amount" name="total_amount" value="" class="form-control" placeholder="输入订单总金额">
+            <button type="submit" class="btn btn-danger" id="plus-btn">提交</button>
           </form>
 	</td>
-        <td>{{ $order->serial_data['serial_no'] }}</td>
       </tr>
 
-
+      @endif
 
 
 

@@ -124,9 +124,16 @@ class OrdersController extends Controller
     }
     public function plus(Order $order,Request $request)
     {
+        $data = $this->validate($request, [
+            'total_amount' => ['required'],
+        ],[], [
+            'total_amount' => '修改订单总金额',
+        ]);
+        //将订单发货状态改为已发货，并存入物流信息
         $order->update([
-		'total_amount' => $Order->total_amount,
-	    ]);
+            'total_amount' => $request->input('total_amount'),
+        ]);
+
         return redirect()->back();
     }
     public function handlePayConfirm(Order $order,HandlePayConfirmRequest $request)

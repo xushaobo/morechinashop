@@ -17,7 +17,7 @@ class SerialNumController extends Controller
 	public function index(Content $content)
 	{
 		return $content
-		 ->header('产品序列号列表')
+		 ->header('WTW到货记录列表')
 		 ->body($this->grid());
 	}
 

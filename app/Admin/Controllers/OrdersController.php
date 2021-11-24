@@ -70,6 +70,7 @@ class OrdersController extends Controller
             $filter->like('no','单订流水号');
             $filter->like('user.name','买家');
             $filter->like('remark','单位名称');
+            $filter->like('serial_data','序列号');
             $filter->like('paid_at','支付时间');
         });
         return $grid;
@@ -110,6 +111,15 @@ class OrdersController extends Controller
         //将订单发货状态改为已发货，并存入物流信息
         $order->update([
             'serial_data' => $data,
+        ]);
+
+        return redirect()->back();
+    }
+    public function memo(Order $order,Request $request)
+    {
+        //将订单发货状态改为已发货，并存入物流信息
+        $order->update([
+            'payment_no' => $request->input('memo'),
         ]);
 
         return redirect()->back();

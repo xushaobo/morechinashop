@@ -20,7 +20,7 @@
         <td>支付方式：</td>
         <td>{{ $order->payment_method ? $order->payment_method:'已支付' }}</td>
         <td>支付渠道单号：</td>
-        <td>{{ $order->payment_no ? $order->payment_no:'已支付' }}</td>
+        <td>已支付</td>
       </tr>
       <tr>
         <td>收货地址</td>
@@ -162,6 +162,20 @@
       @endif
       <!-- 订单发货结束 -->
 
+      <tr>
+	<td>
+          <form action="{{ route('admin.orders.memo', [$order->id]) }}" method="post" class="form-inline">
+            <!-- 别忘了 csrf token 字段 -->
+            {{ csrf_field() }}
+            <div class="form-group {{ $errors->has('payment_no') ? 'has-error' : '' }}">
+              <label for="memo" class="control-label">备注</label>
+              <input type="text" id="memo" name="memo" value="" class="form-control" placeholder="输入订单备注">
+            </div>
+            <button type="submit" class="btn btn-success" id="memo-btn">提交</button>
+          </form>
+	</td>
+        <td>{{ $order->payment_no ? $order->payment_no:'无' }}</td>
+      </tr>
       </tbody>
     </table>
   </div>

@@ -34,6 +34,7 @@ Route::group([
     $router->get('orders/{order}', 'OrdersController@show')->name('admin.orders.show');
     $router->post('orders/{order}/ship', 'OrdersController@ship')->name('admin.orders.ship');
     $router->post('orders/{order}/serial', 'OrdersController@serial')->name('admin.orders.serial');
+    $router->post('orders/{order}/memo', 'OrdersController@memo')->name('admin.orders.memo');
     $router->post('orders/{order}/back', 'OrdersController@back')->name('admin.orders.back');
     $router->post('orders/{order}/plus', 'OrdersController@plus')->name('admin.orders.plus');
 

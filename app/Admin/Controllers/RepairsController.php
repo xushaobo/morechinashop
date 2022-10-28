@@ -31,10 +31,11 @@ class RepairsController extends AdminController
         $grid->column('remark', __('客户名称'))->width(200);
         $grid->column('customer_name', __('联系人'))->width(80);
         $grid->column('phone', __('联系电话'));
+        $grid->column('send_num', __('快递递号'));
         $grid->column('seller', __('销售员'))->width(80);
         $grid->column('brand', __('品牌'));
         $grid->column('type', __('型号'));
-        $grid->column('serial_num', __('序列号'))->width(150);
+        $grid->column('serial_num', __('仪器序列号'))->width(150);
         $grid->column('bad_description', __('故障描述'))->width(150);
         $grid->column('ifunderwarry',('是否在保'))->replace([1=>'是',0=>'否'])->sortable()->width(50);
         $grid->column('ifreturntoBJ',('是否返厂'))->replace([1=>'是',0=>'否'])->sortable()->width(50);
@@ -56,7 +57,8 @@ $grid->filter(function($filter){
                                 $filter->disableIdFilter();
 
                                 $filter->like('remark','客户名称');
-                                $filter->like('serial_num','序列号');
+                                $filter->like('send_num','快递单号');
+                                $filter->like('serial_num','序列号和返修快递单号');
                                 $filter->like('type','型号');
 				$filter->like('des_add','返修状态');
                         });
@@ -91,6 +93,7 @@ $grid->actions(function ($actions) {
         $form->text('remark', __('客户名称'));
         $form->text('customer_name', __('联系人'));
         $form->mobile('phone', __('联系电话'));
+        $form->text('send_num', __('快递单号'));
         $form->text('seller', __('销售员'));
         $form->text('brand', __('品牌'));
         $form->text('type', __('型号'));

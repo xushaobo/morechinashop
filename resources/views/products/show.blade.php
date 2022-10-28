@@ -2,8 +2,23 @@
 @section('title', $product->title)
 
 @section('content')
+
 <div class="row">
 <div class="col-lg-10 offset-lg-1">
+    <!-- 筛选组件开始 -->
+    <form action="{{ route('products.index') }}" class="search-form">
+      <div class="form-row">
+        <div class="col-5">
+          <div class="form-row">
+            <div class="col-auto category-breadcrumb">
+
+			<input type="text" class="form-control form-control-sm" name="search" placeholder="搜索"></div>
+            <div class="col-auto"><button class="btn btn-primary btn-sm">搜索</button></div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <!-- 筛选组件结束 -->
 <div class="card">
   <div class="card-body product-info">
     <div class="row">

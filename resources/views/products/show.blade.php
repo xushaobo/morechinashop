@@ -61,6 +61,21 @@
             <label>件</label>
           </div>
         </div>
+
+
+        <div class="skus">
+          <label style="color: red">在途</label>
+          <div class="btn-group btn-group-toggle" data-toggle="buttons">
+            @foreach($product->skus as $sku)
+              <label class="btn sku-btn"  title="{{ $sku->title }}" >
+                <input type="radio" name="skus2" autocomplete="off" value="{{ $sku->title }}"> {{ $sku-> stock }}
+              </label>
+            @endforeach
+            <label>件</label>
+          </div>
+        </div>
+
+
 	   <div class="buttons">
             @if($favored)
             <button class="btn btn-danger btn-disfavor">取消收藏</button>

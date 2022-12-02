@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddSerialDataToOrders extends Migration
+class AlterProductSkusTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,8 @@ class AddSerialDataToOrders extends Migration
      */
     public function up()
     {
-        Schema::table('orders', function (Blueprint $table) {
-	  $table->text('serial_data')->nullable();
+        Schema::table('product_skus', function (Blueprint $table) {
+	   $table->decimal('stock_price',10,2)->after('price')->default(0);	
         });
     }
 
@@ -23,10 +23,4 @@ class AddSerialDataToOrders extends Migration
      *
      * @return void
      */
-    public function down()
-    {
-        Schema::table('orders', function (Blueprint $table) {
-           $table->dropColumn('serial_data');
-        });
-    }
 }

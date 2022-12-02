@@ -14,6 +14,10 @@ Route::group([
     $router->get('users', 'UsersController@index');
     $router->get('products', 'ProductsController@index');
 
+    $router->get('product_sku', 'ProductSkuController@index');
+    $router->get('product_sku/{id}/edit', 'ProductSkuController@edit');
+    $router->put('product_sku/{id}', 'ProductSkuController@update');
+
     $router->get('products/create','ProductsController@create');
     $router->post('products','ProductsController@store');
 

@@ -15,7 +15,9 @@ Route::group([
     $router->get('products', 'ProductsController@index');
 
     $router->get('product_sku', 'ProductSkuController@index');
+    $router->get('product_sku/create', 'ProductSkuController@create');
     $router->get('product_sku/{id}/edit', 'ProductSkuController@edit');
+    $router->post('product_sku', 'ProductSkuController@store');
     $router->put('product_sku/{id}', 'ProductSkuController@update');
 
     $router->get('products/create','ProductsController@create');

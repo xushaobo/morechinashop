@@ -3,13 +3,17 @@
 namespace App\Admin\Controllers;
 
 use App\Models\ProductSku;
-use Encore\Admin\Controllers\AdminController;
+use App\Http\Controllers\Controller;
+use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
+use Encore\Admin\Layout\Content;
 use Encore\Admin\Show;
 
-class ProductSkuController extends AdminController
+
+class ProductSkuController extends Controller
 {
+    use HasResourceActions;
     /**
      * Title for current resource.
      *
@@ -60,6 +64,26 @@ class ProductSkuController extends AdminController
         $form->decimal('stock_price', __('Stock price'))->default(0.00);
         $form->number('product_id', __('Product id'));
 **/
+	$form->hasMany('serialnum','点击"新增"添加序列号', function(Form\NestedForm $form) {
+		$form->text('serial_num','序列号')->rules('required');
+	});
         return $form;
     }
+
+    public function index(Content $content)
+    {
+        return $content
+            ->header('Index')
+            ->description('description')
+            ->body($this->grid());
+    }
+
+    public function edit($id, Content $content)
+    {
+	return $content	
+	   ->header('编辑库存和序列号')
+           ->body($this->form()->edit($id));
+    }
+
+    
 }

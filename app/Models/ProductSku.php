@@ -29,7 +29,7 @@ class ProductSku extends Model
         }
         $this->increment('stock',$amount);
     }
-    public function serialNum()
+    public function SerialNum()
     {
 	return $this->hasMany(SerialNum::class,'productSku_id');
     }

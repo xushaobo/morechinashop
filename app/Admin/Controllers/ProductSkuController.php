@@ -32,10 +32,16 @@ class ProductSkuController extends Controller
 
         $grid->column('id', __('Id'));
         $grid->column('title', __('品名'));
-        $grid->column('description', __('描述'));
-        $grid->column('stock', __('库存数量'));
-        $grid->column('ontheway', __('在途数量'));
+        $grid->column('description', __('分类描述'))->sortable();
+        $grid->column('stock', __('库存数量'))->sortable();
+        $grid->column('ontheway', __('在途数量'))->sortable();
 
+        $grid->filter(function($filter){
+                                $filter->disableIdFilter();
+
+                                $filter->like('title','货号');
+                                $filter->like('description','分类描述');
+                        });
         return $grid;
     }
 
@@ -56,8 +62,10 @@ class ProductSkuController extends Controller
         $form = new Form(new ProductSku());
 
         $form->text('title', __('品名货号'));
+        $form->text('description', __('分类描述'));
         $form->number('ontheway', __('在途数量'));
         $form->number('stock', __('库存数量'));
+
 /**
         $form->text('description', __('Description'));
         $form->decimal('price', __('Price'));
@@ -66,6 +74,8 @@ class ProductSkuController extends Controller
 **/
 	$form->hasMany('serialnum','点击"新增"添加序列号', function(Form\NestedForm $form) {
 		$form->text('serial_num','序列号')->rules('required');
+		$form->text('ship_num','到货批次号')->rules('required');
+		$form->date('created_at', '创建时间')->rules('required')->default(date('Y-m-d',strtotime("-0 day")));
 	});
         return $form;
     }

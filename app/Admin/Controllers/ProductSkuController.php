@@ -80,6 +80,14 @@ class ProductSkuController extends Controller
         return $form;
     }
 
+
+	  public function create(Content $content)
+    {
+        return $content
+            ->header('新增SKU')
+            ->body($this->form());
+    }
+
     public function index(Content $content)
     {
         return $content

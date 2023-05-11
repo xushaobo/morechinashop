@@ -39,9 +39,11 @@
 		<li class="nav-item">
 		<a class="nav-link mt-1" href="{{ route('cart.index') }}"><i class="fa fa-shopping-cart"></i></a>
 	  </li>
+
+
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <img src="https://cdn.learnku.com/uploads/images/201709/20/1/PtDKbASVcz.png?imageView2/1/w/60/h/60" class="img-responsive img-circle" width="30px" height="30px">
+                         <img src="https://manbofish.morechina.com/WechatIMG71.jpeg?imageView2/1/w/60/h/60" class="img-responsive img-circle" width="30px" height="30px">
             {{ Auth::user()->name }}
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -55,6 +57,15 @@
             </form>
           </div>
         </li>
+
+        <!-- 消息提醒开始 -->
+	  <li class="nav-item notification-badge">
+            <a class="nav-link mr-3 badge badge-pill badge-{{ Auth::user()->notification_count > 0 ? 'hint' : 'secondary' }} text-white" href="{{ route('notifications.index') }}">
+              {{ Auth::user()->notification_count }}
+            </a>
+          </li>
+        <!-- 消息提醒结束 -->
+
         @endguest
         <!-- 登录注册链接结束 -->
       </ul>

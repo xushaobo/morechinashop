@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+use App\Models\Customer;
+
+use App\Http\Requests\CustomerRequest;
+
+class CustomersController extends Controller
+{
+    public function index(Request $request)
+    {
+	return view('customers.index',[
+		'customers' => $request->user()->customers,	   
+	]);
+    }
+    
+    public function create()
+    {
+	return view('customers.create_and_edit',['customer' => new Customers()]);	
+    }
+
+    public function store(CustomerRequest $request)
+    {
+	$request->user()->customers()->create($request->only([
+	    'customer_name',
+	    'contact_name',
+	    'contact_phone',
+	]));	
+	
+	return redirect()->route('customers.index');
+    }
+}

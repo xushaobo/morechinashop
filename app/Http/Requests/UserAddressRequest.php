@@ -11,7 +11,7 @@ class UserAddressRequest extends Request
     public function rules()
     {
         return [
-			'province'      => 'required',
+	    'province'      => 'required',
             'city'          => 'required',
             'district'      => 'required',
             'address'       => 'required',
@@ -24,7 +24,7 @@ class UserAddressRequest extends Request
     public function attributes()
     {
         return [
-			'province'      => '省',
+	    'province'      => '省',
             'city'          => '城市',
             'district'      => '地区',
             'address'       => '详细地址',

@@ -23,7 +23,7 @@ class Customer extends Model
    
    public function getFullCustomerAttribute()
    {
-	return "{$this->customer_name}{$this->contact_phone}{$this->contact_phone}{$this->memo}";
+	return "{$this->customer_name}{$this->contact_name}{$this->contact_phone}{$this->memo}";
    }
 
 }

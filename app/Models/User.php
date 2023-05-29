@@ -3,12 +3,21 @@
 namespace App\Models;
 
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Auth\MustVerifyEmail as MustVerifyEmailTrait;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 
-class User extends Authenticatable implements MustVerifyEmail
+use Auth;
+
+
+class User extends Authenticatable implements MustVerifyEmailContract
 {
-    use Notifiable;
+    use MustVerifyEmailTrait;
+	
+    use Notifiable  {
+	notify as protected laravelNotify;
+    }
+
 
     /**
      * The attributes that are mass assignable.
@@ -57,5 +66,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public function customers()
     {
 	return $this->hasMany(Customer::class);
+    }
+
+    public function notify($instance)
+    {
+	if (method_exists($instance, 'toDatabase')) {
+	  $this->increment('notification_count');
+        }
+	$this->laravelNotify($instance);
+    }
+
+    public function markAsRead()
+    {
+	$this->notification_count = 0;	
+    	$this->save();
+	$this->unreadNotifications->markAsRead();
     }
 }

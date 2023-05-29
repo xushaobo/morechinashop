@@ -57,6 +57,12 @@
             <input type="text" class="form-control" name="memo" value="{{ old('memo', $customer->memo) }}">
           </div>
         </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">下一次提醒时间</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="last_used_at" value="{{ old('last_used_at', $customer->last_used_at) }}">
+          </div>
+        </div>
         <div class="form-group row text-center">
           <div class="col-12">
             <button type="submit" class="btn btn-primary">提交</button>

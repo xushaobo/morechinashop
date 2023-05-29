@@ -1,0 +1,4 @@
+[2023-05-18 10:58:52] local.ERROR: Interface 'App\Models\MustVerifyEmailContract' not found {"userId":1,"email":"8016@morechina.com.cn","exception":"[object] (Symfony\\Component\\Debug\\Exception\\FatalErrorException(code: 1): Interface 'App\\Models\\MustVerifyEmailContract' not found at /var/www/morechina/app/Models/User.php:13)
+[stacktrace]
+#0 {main}
+"} 

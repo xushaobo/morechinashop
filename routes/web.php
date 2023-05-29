@@ -31,6 +31,7 @@ Route::group(['middleware' => ['auth', 'verified']], function() {
     Route::post('customers','CustomersController@store')->name('customers.store');
     Route::get('customers/{customer}','CustomersController@edit')->name('customers.edit');
     Route::put('customers/{customer}','CustomersController@update')->name('customers.update');
+    Route::delete('customers/{customer}','CustomersController@destory')->name('customers.destory');
 
 
 

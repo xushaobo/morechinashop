@@ -70,9 +70,7 @@ class User extends Authenticatable implements MustVerifyEmailContract
 
     public function notify($instance)
     {
-	if (method_exists($instance, 'toDatabase')) {
-	  $this->increment('notification_count');
-        }
+	$this->increment('notification_count');
 	$this->laravelNotify($instance);
     }
 

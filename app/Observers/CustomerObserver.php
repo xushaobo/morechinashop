@@ -14,6 +14,6 @@ class CustomerObserver
    public function created(Customer $customer)
    {
 	// 通知客户所有者有新的待联系客户
-	$customer->user->customerNotify(new CustomerCreated($customer));
+	$customer->user->notify(new CustomerCreated($customer));
    }
 }

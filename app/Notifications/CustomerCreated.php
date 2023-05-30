@@ -12,6 +12,8 @@ class CustomerCreated extends Notification
 {
     use Queueable;
 
+    public $customer;
+
     /**
      * Create a new notification instance.
      *
@@ -37,11 +39,11 @@ class CustomerCreated extends Notification
 
     public function toDatabase($notifiable)
     {
-	$customer_message = $this->customer->full_customer
+	$customer_message = $this->customer->full_customer;
 
         // 存入数据库里的数据
          return [
-   		customer_message => $customer_message,
+   		'customer_message' => $customer_message,
     ];
     }
 

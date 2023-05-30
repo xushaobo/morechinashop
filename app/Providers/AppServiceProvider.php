@@ -8,6 +8,10 @@ use Illuminate\Support\Facades\Schema;
 use Monolog\Logger;
 use Yansongda\Pay\Pay;
 
+use App\Models\Customer;
+use App\Observers\CustomerObserver;
+
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -55,5 +59,8 @@ class AppServiceProvider extends ServiceProvider
         // 同时 Laravel 还支持通配符，例如 products.* 即代表当渲染 products 目录下的模板时都执行这个 ViewComposer
         \View::composer(['products.index', 'products.show'], \App\Http\ViewComposers\CategoryTreeComposer::class);
         Schema::defaultStringLength(191);
+
+	Customer::observe(CustomerObserver::class);
+
     }
 }

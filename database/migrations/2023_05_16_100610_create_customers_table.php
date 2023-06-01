@@ -21,7 +21,7 @@ class CreateCustomersTable extends Migration
             $table->string('contact_name');
             $table->string('contact_phone');
             $table->string('memo');
-	    $table->dateTime('last_used_at')->nullable();
+	    $table->dateTime('last_used_at');
 	    $table->timestamps();
         });
     }

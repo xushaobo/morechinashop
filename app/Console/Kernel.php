@@ -25,9 +25,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-	$schedule->call(function () {
-		DB::table('test')->insert(['name'=>'test']);
-	})->everyMinute();
+//	$schedule->call(function () {
+//		DB::table('test')->insert(['name'=>'test']);
+//	})->everyMinute();
+	
+	$schedule->command('cron:start-notify')->everyMinute();
     }
 
     /**

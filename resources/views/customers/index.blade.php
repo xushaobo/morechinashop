@@ -12,20 +12,56 @@
           <table class="table table-bordered table-striped">
             <thead>
             <tr>
-              <th>客户公司名称</th>
+              <th>序号</th>
+              <th>客户公司名称*</th>
               <th>客户联系人</th>
+              <th>联系人信息</th>
               <th>联系人电话</th>
+<!--
+              <th>地址</th>
+              <th>邮箱</th>
+              <th>QQ</th>
+	      <th>wechat</th>
+              <th>首次来电时间</th>
               <th>备注</th>
-              <th>下一次提醒时间</th>
+              <th>地区</th>
+              <th>城市</th>
+-->
+              <th>客户性质</th>
+              <th>客户潜在需求</th>
+              <th>需求类型</th>
+              <th>需求品牌</th>
+              <th>跟进阶段</th>
+              <th>最近联系时间和内容</th>
+              <th>下一次联系内容</th>
+              <th>下一次提醒时间*</th>
             </tr>
             </thead>
             <tbody>
             @foreach($customers as $customer)
               <tr>
+                <td>{{ $customer->id }}</td>
                 <td>{{ $customer->customer_name }}</td>
                 <td>{{ $customer->contact_name }}</td>
+                <td>{{ $customer->contact_info }}</td>
                 <td>{{ $customer->contact_phone }}</td>
+<!--
+                <td>{{ $customer->contact_address }}</td>
+                <td>{{ $customer->contact_email }}</td>
+                <td>{{ $customer->contact_QQ }}</td>
+                <td>{{ $customer->wechat }}</td>
+                <td>{{ $customer->first_call }}</td>
                 <td>{{ $customer->memo }}</td>
+                <td>{{ $customer->region }}</td>
+                <td>{{ $customer->city }}</td>
+-->
+                <td>{{ $customer->customer_type }}</td>
+                <td>{{ $customer->contact_require }}</td>
+                <td>{{ $customer->require_type }}</td>
+                <td>{{ $customer->require_brand }}</td>
+                <td>{{ $customer->follow_up_stage }}</td>
+                <td>{{ $customer->recent_contact }}</td>
+                <td>{{ $customer->next_action }}</td>
                 <td>{{ $customer->last_used_at }}</td>
                 <td>
 		  <a href="{{ route('customers.edit', ['customer' => $customer->id]) }}" class="btn btn-primary">修改</a>

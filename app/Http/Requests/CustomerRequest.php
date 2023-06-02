@@ -10,9 +10,6 @@ class CustomerRequest extends Request
     {
         return [
 	    'customer_name' => 'required',
-	    'contact_name' => 'required',
-	    'contact_phone' => 'required',
-	    'memo' => 'required',
 	    'last_used_at' => 'required',
         ];
     }

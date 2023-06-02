@@ -33,6 +33,21 @@ class CustomersController extends Controller
 	    'contact_phone',
 	    'memo',
 	    'last_used_at',
+	    'first_call',
+	    'region',
+	    'city',
+	    'customer_type',
+	    'contact_info',
+	    'contact_email',
+	    'contact_QQ',
+	    'wechat',
+	    'contact_address',
+	    'contact_require',
+	    'require_type',
+	    'require_brand',
+            'follow_up_stage',
+	    'recent_contact',
+	    'next_action',
 	]));	
 	
 	return redirect()->route('customers.index');
@@ -49,6 +64,21 @@ class CustomersController extends Controller
 		'contact_phone',	
 		'memo',
 		'last_used_at',
+		'first_call',
+		'region',
+		'city',
+		'customer_type',
+		'contact_info',
+		'contact_email',
+		'contact_QQ',
+		'wechat',
+		'contact_address',
+	    'contact_require',
+	    'require_type',
+	    'require_brand',
+            'follow_up_stage',
+	    'recent_contact',
+	    'next_action',
 	]));
 	
 	return redirect()->route('customers.index');

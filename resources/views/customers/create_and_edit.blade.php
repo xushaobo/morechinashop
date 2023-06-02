@@ -34,7 +34,7 @@
       <!-- 注意这里多了 @change -->
 
         <div class="form-group row">
-          <label class="col-form-label text-md-right col-sm-2">公司名称</label>
+          <label class="col-form-label text-md-right col-sm-2">公司名称*</label>
           <div class="col-sm-9">
             <input type="text" class="form-control" name="customer_name" value="{{ old('customer_name', $customer->customer_name) }}">
           </div>
@@ -46,9 +46,45 @@
           </div>
         </div>
         <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">联系人信息</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="contact_info" value="{{ old('contact_info', $customer->contact_info) }}">
+          </div>
+	</div>
+        <div class="form-group row">
           <label class="col-form-label text-md-right col-sm-2">电话</label>
           <div class="col-sm-9">
             <input type="text" class="form-control" name="contact_phone" value="{{ old('contact_phone', $customer->contact_phone) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">地址</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="contact_address" value="{{ old('contact_address', $customer->contact_address) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">邮箱</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="contact_email" value="{{ old('contact_email', $customer->contact_email) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">QQ</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="contact_QQ" value="{{ old('contact_QQ', $customer->contact_QQ) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">微信</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="wechat" value="{{ old('wechat', $customer->wechat) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">首次来电时间</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="first_call" value="{{ old('first_call', $customer->first_call) }}">
           </div>
         </div>
         <div class="form-group row">
@@ -58,7 +94,61 @@
           </div>
         </div>
         <div class="form-group row">
-          <label class="col-form-label text-md-right col-sm-2">下一次提醒时间</label>
+          <label class="col-form-label text-md-right col-sm-2">地区</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="region" value="{{ old('region', $customer->region) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">城市</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="city" value="{{ old('city', $customer->city) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">客户类型</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="customer_type" value="{{ old('customer_type', $customer->customer_type) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">客户潜在需求</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="contact_require" value="{{ old('contact_require', $customer->contact_require) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">需求类型</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="require_type" value="{{ old('require_type', $customer->require_type) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">需求品牌</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="require_brand" value="{{ old('require_brand', $customer->require_brand) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">跟进阶段</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="follow_up_stage" value="{{ old('follow_up_stage', $customer->follow_up_stage) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">最近联系时间和内容</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control"  name="recent_contact" value="{{ old('recent_contact', $customer->recent_contact) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">下一次待联系行动内容</label>
+          <div class="col-sm-9">
+            <input type="text" class="form-control" name="next_action" value="{{ old('next_action', $customer->next_action) }}">
+          </div>
+        </div>
+        <div class="form-group row">
+          <label class="col-form-label text-md-right col-sm-2">下一次提醒时间*</label>
           <div class="col-sm-9">
             <input type="text" class="form-control" name="last_used_at" value="{{ old('last_used_at', $customer->last_used_at) }}">
           </div>

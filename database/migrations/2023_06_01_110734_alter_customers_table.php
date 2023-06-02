@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AddFirstCallToCustomersTable extends Migration
+class AlterCustomersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,8 +13,11 @@ class AddFirstCallToCustomersTable extends Migration
      */
     public function up()
     {
+	
         Schema::table('customers', function (Blueprint $table) {
-		$table->dateTime('first_call')->nullable();
+		$table->string('region')->default(''); //地区
+		$table->string('city')->default('');  //城市
+		$table->string('customer_type')->default('');  //客户性质
         });
     }
 
@@ -26,7 +29,9 @@ class AddFirstCallToCustomersTable extends Migration
     public function down()
     {
         Schema::table('customers', function (Blueprint $table) {
-		$table->dropColumn('first_call');
+		$table->drop_column('region'); //地区
+		$table->drop_column('city'); //地区
+		$table->drop_column('customer_type'); //地区
         });
     }
 }

@@ -138,7 +138,10 @@
         <div class="form-group row">
           <label class="col-form-label text-md-right col-sm-2">最近联系时间和内容</label>
           <div class="col-sm-9">
-            <input type="text" class="form-control"  name="recent_contact" value="{{ old('recent_contact', $customer->recent_contact) }}">
+            <textarea  class="form-control" rows="3"  name="recent_contact"  }}
+">
+		{{ old('recent_contact', $customer->recent_contact) }}
+	    </textarea>
           </div>
         </div>
         <div class="form-group row">

@@ -49,7 +49,6 @@ class CustomersController extends Controller
 	    'recent_contact',
 	    'next_action',
 	]));	
-	    $customer->recent_contact = $request->recent_contact;	
 
 	return redirect()->route('customers.index');
     }

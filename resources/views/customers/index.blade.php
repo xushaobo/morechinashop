@@ -9,7 +9,7 @@
 	<a href="{{ route('customers.create') }}" class="float-right">新增待联系客户</a>
        </div>
         <div class="card-body">
-          <table class="table table-bordered table-striped">
+          <table class="table table-bordered table-hover table-striped" style="word-break:break-all; word-wrap:break-all;">
             <thead>
             <tr>
               <th>序号</th>

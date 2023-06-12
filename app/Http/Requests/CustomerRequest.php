@@ -11,7 +11,6 @@ class CustomerRequest extends Request
         return [
 	    'customer_name' => 'required',
 	    'last_used_at' => 'required',
-	    'recent_contact' => 'max:200',
         ];
     }
 }

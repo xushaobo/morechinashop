@@ -12,7 +12,7 @@ class UserAddressesController extends Controller
 	public function index(Request $request)
     {
         return view('user_addresses.index', [
-            'addresses' => $request->user()->addresses,
+            'addresses' => $request->user()->addresses()->paginate(5),
         ]);
     }
 	public function create()

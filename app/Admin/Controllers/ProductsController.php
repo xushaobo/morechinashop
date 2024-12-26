@@ -86,6 +86,13 @@ class ProductsController extends Controller
             });
         });
 
+        $grid->filter(function($filter){
+                                $filter->disableIdFilter();
+                                $filter->like('title','商品名称');
+                             // $filter->like('description','分类描述');
+                                $filter->equal('on_sale', '是否上架' );
+                                $filter->like('category.name', '类目' );
+                        });
         return $grid;
     }
 

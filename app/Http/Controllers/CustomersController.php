@@ -73,12 +73,12 @@ class CustomersController extends Controller
 		'contact_QQ',
 		'wechat',
 		'contact_address',
-	    'contact_require',
-	    'require_type',
-	    'require_brand',
-            'follow_up_stage',
-	    'recent_contact',
-	    'next_action',
+		    'contact_require',
+		    'require_type',
+		    'require_brand',
+		    'follow_up_stage',
+		    'recent_contact',
+		    'next_action',
 	]));
 	
 	return redirect()->route('customers.index');

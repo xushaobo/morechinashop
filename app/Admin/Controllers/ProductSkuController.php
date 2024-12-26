@@ -41,6 +41,7 @@ class ProductSkuController extends Controller
 
                                 $filter->like('title','货号');
                                 $filter->like('description','分类描述');
+                                $filter->notEqual('stock','剔除库存数量0');
                         });
         return $grid;
     }
@@ -74,7 +75,7 @@ class ProductSkuController extends Controller
 **/
 	$form->hasMany('serialnum','点击"新增"添加序列号', function(Form\NestedForm $form) {
 		$form->text('serial_num','序列号')->rules('required');
-		$form->text('ship_num','到货批次号')->rules('required');
+		$form->text('ship_num','到货批次号')->rules('required')->default("0");
 		$form->date('created_at', '创建时间')->rules('required')->default(date('Y-m-d',strtotime("-0 day")));
 	});
         return $form;

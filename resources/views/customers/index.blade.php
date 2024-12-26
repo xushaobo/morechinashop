@@ -9,14 +9,14 @@
 	<a href="{{ route('customers.create') }}" class="float-right">新增待联系客户</a>
        </div>
         <div class="card-body">
-          <table class="table table-bordered table-hover table-striped" style="word-break:break-all; word-wrap:break-all;">
+          <table class="table table-bordered" style="table-layout:fixed">
             <thead>
             <tr>
               <th>序号</th>
               <th>客户公司名称*</th>
               <th>客户联系人</th>
               <th>联系人信息</th>
-              <th>联系人电话</th>
+              <th width="15%">联系人电话</th>
 <!--
               <th>地址</th>
               <th>邮箱</th>
@@ -30,11 +30,11 @@
               <th>客户性质</th>
               <th>客户潜在需求</th>
               <th>需求类型</th>
-              <th>需求品牌</th>
+              <th width="10%">需求品牌</th>
               <th>跟进阶段</th>
-              <th>最近联系时间和内容</th>
-              <th>下一次联系内容</th>
-              <th>下一次提醒时间*</th>
+              <th width="25%">最近联系时间和内容</th>
+              <th width="10%">下一次联系内容</th>
+              <th width="10%">下一次提醒时间*</th>
             </tr>
             </thead>
             <tbody>
@@ -60,8 +60,8 @@
                 <td>{{ $customer->require_type }}</td>
                 <td>{{ $customer->require_brand }}</td>
                 <td>{{ $customer->follow_up_stage }}</td>
-                <td>{{ $customer->recent_contact }}</td>
-                <td>{{ $customer->next_action }}</td>
+                <td style="overflow:hidden; white-space:nowrap;text-overflow:ellipsis;">{{ $customer->recent_contact }}</td>
+                <td style="overflow:hidden; white-space:nowrap;text-overflow:ellipsis;">{{ $customer->next_action }}</td>
                 <td>{{ $customer->last_used_at }}</td>
                 <td>
 		  <a href="{{ route('customers.edit', ['customer' => $customer->id]) }}" class="btn btn-primary">修改</a>

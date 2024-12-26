@@ -50,6 +50,13 @@ class CategoriesController extends Controller
             $actions->disableView();
         });
 
+        $grid->filter(function($filter){
+                                $filter->disableIdFilter();
+                                $filter->like('id','类目id');
+                                $filter->like('name','类目名称');
+                                $filter->like('path', '类目路径' );
+                                $filter->equal('is_directory', 0 );
+                        });
         return $grid;
     }
 

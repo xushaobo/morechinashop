@@ -11,7 +11,7 @@ class SerialNum extends Model
 {
     use SoftDeletes;    
 
-    protected $fillable = ['productSku_id','serial_num','ship_num','created_at'];
+    protected $fillable = ['productSku_id','serial_num','ship_num','created_at','deleted_at','updated_at'];
 
     public $timestamps = true;
 
@@ -19,4 +19,5 @@ class SerialNum extends Model
     {
 	return $this->belongsTo(ProductSku::class,'productSku_id');
     }
+
 }

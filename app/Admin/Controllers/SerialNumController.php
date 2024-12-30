@@ -3,7 +3,8 @@
 namespace App\Admin\Controllers;
 
 use App\Models\Category;
-use App\Models\ArriveCheck;
+use App\Models\ProductSku;
+use App\Models\SerialNum;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form;
@@ -37,15 +38,13 @@ class SerialNumController extends Controller
 
 		protected function grid()
 		{
-			$grid = new Grid(new ArriveCheck);
+			$grid = new Grid(new SerialNum);
+                        //$grid = model()->with(['productsku']);
 			$grid->id('ID')->sortable();
-			$grid->arrive_date('到货日期')->sortable();
-			$grid->pi_num('到货批次号')->sortable();
-			$grid->sku_num('货号')->sortable();
-			$grid->serial_num1('主机产品序列号(后四位)')->sortable();
-			$grid->serial_num2('附件电极序列号(后五位)')->sortable();
-			$grid->if_sold('是否售完')->sortable();
-			$grid->memo('备注')->sortable();
+			$grid->productSku_id('sku_id')->sortable();
+			$grid->serial_num('序列号')->sortable();
+			$grid->created_at('创建日期')->sortable();
+			$grid->updated_at('最近更新日期')->sortable();
 
 	
 			$grid->actions(function ($actions) {
@@ -68,6 +67,7 @@ class SerialNumController extends Controller
 				$filter->like('serial_num2','电极附件序列号(后五位)');
 				$filter->like('if_sold','是否售完');
 				$filter->like('memo','备注');
+				$filter->scope('trashed', '已出库')->onlyTrashed();
 			});
 			return $grid;
 		}

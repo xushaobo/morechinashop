@@ -13,7 +13,7 @@ use App\Services\CategoryService;
 
 class ProductsController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request, CategoryService $categoryService)
     {
 		 // 创建一个查询构造器
         $builder = Product::query()->where('on_sale', true);
@@ -59,7 +59,9 @@ class ProductsController extends Controller
             }
         }
 
-        $products = $builder->paginate(16);
+//        修复分页导致category丢失
+//        $products = $builder->paginate(16);
+        $products = $builder->paginate(16)->appends(request()->query());
 
        return view('products.index', [
             'products' => $products,
@@ -67,7 +69,8 @@ class ProductsController extends Controller
                 'search' => $search,
                 'order'  => $order,
             ],
-	    'category' => $category ?? null,
+	     'category' => $category ?? null,
+	     'categoryTree' => $categoryService->getCategoryTree(),
         ]);
     }
 	 public function show(Product $product, Request $request)

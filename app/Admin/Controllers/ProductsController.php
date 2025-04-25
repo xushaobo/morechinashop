@@ -90,7 +90,11 @@ class ProductsController extends Controller
                                 $filter->disableIdFilter();
                                 $filter->like('title','商品名称');
                              // $filter->like('description','分类描述');
-                                $filter->equal('on_sale', '是否上架' );
+                                $filter->equal('on_sale','是否上架')->radio([
+				'' => 'All',
+				0 => "否",
+				1 => "是",
+			]);
                                 $filter->like('category.name', '类目' );
                         });
         return $grid;

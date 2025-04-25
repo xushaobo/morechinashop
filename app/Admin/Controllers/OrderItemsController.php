@@ -39,7 +39,7 @@ class OrderItemsController extends Controller
         $grid->filter(function($filter){
             $filter->disableIdFilter();
 
-	    $filter->like('order.paid_at','下单日期');
+	    $filter->between('order.paid_at','下单日期')->datetime();
             $filter->like('productSku.title','型号');
             $filter->like('order.remark','单位名称');
         });

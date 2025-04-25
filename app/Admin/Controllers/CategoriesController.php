@@ -55,7 +55,11 @@ class CategoriesController extends Controller
                                 $filter->like('id','类目id');
                                 $filter->like('name','类目名称');
                                 $filter->like('path', '类目路径' );
-                                $filter->equal('is_directory', 0 );
+                                $filter->equal('is_directory', '是否类目' )->radio([
+				'' => 'All',
+				0 => '否',
+				1 => '是',
+			]);
                         });
         return $grid;
     }

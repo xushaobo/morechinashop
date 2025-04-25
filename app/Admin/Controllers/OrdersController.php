@@ -71,7 +71,7 @@ class OrdersController extends Controller
             $filter->like('user.name','买家');
             $filter->like('remark','单位名称');
             $filter->like('serial_data','序列号');
-            $filter->like('paid_at','支付时间');
+            $filter->between('paid_at','支付时间')->datetime();
         });
         return $grid;
     }

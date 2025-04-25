@@ -60,7 +60,12 @@ $grid->filter(function($filter){
                                 $filter->like('send_num','快递单号');
                                 $filter->like('serial_num','序列号和返修快递单号');
                                 $filter->like('type','型号');
-				$filter->like('des_add','返修状态');
+				$filter->equal('des_add','返修状态')->radio([
+				'' => 'All',
+				0 => '进行中',
+		      	        1 => '已修复',
+			        2 => '申保中',
+			]);
                         });
 
 $grid->actions(function ($actions) {

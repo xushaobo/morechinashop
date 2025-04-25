@@ -4,12 +4,14 @@ namespace App\Admin\Controllers;
 
 use App\Models\Category;
 use App\Models\ProductSku;
+use App\Models\Product;
 use App\Models\SerialNum;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
+use App\Admin\Actions\Post\Restore;
 
 class SerialNumController extends Controller
 {
@@ -18,7 +20,7 @@ class SerialNumController extends Controller
 	public function index(Content $content)
 	{
 		return $content
-		 ->header('WTW到货记录列表')
+		 ->header('WTW产品序列号列表')
 		 ->body($this->grid());
 	}
 
@@ -39,16 +41,24 @@ class SerialNumController extends Controller
 		protected function grid()
 		{
 			$grid = new Grid(new SerialNum);
-                        //$grid = model()->with(['productsku']);
+			// 避免N+1问题先查出数据
+                        $grid->model()->with(['productsku.product:title']);
 			$grid->id('ID')->sortable();
-			$grid->productSku_id('sku_id')->sortable();
+			$grid->column('productsku.product_id','所属产品id')->sortable();
+			//$grid->column('productsku.product.title','所属产品名称');			// 关联表数据
+			$grid->column('productsku.product.title','所属产品名称')->display(function () {
+				return $this->productSku->product->title;
+			});			// 关联表数据
+			$grid->column('productsku.title','货号')->sortable();
+			$grid->column('productsku.description','描述')->sortable();
 			$grid->serial_num('序列号')->sortable();
 			$grid->created_at('创建日期')->sortable();
 			$grid->updated_at('最近更新日期')->sortable();
+			$grid->ship_num('到货批号')->sortable();
 
 	
 			$grid->actions(function ($actions) {
-                                $actions->disableView();
+                               $actions->disableView();
                                 $actions->disableDelete();
                         });
 
@@ -61,31 +71,32 @@ class SerialNumController extends Controller
 			$grid->filter(function($filter){
 				$filter->disableIdFilter();
 	
-				$filter->like('pi_num','到货批号');
-				$filter->like('sku_num','产品货号');
-				$filter->like('serial_num1','主机序列号(后四位)');
-				$filter->like('serial_num2','电极附件序列号(后五位)');
-				$filter->like('if_sold','是否售完');
-				$filter->like('memo','备注');
-				$filter->scope('trashed', '已出库')->onlyTrashed();
+				$filter->like('productsku.title','货号');
+				$filter->like('serial_num','序列号');
+				$filter->like('created_at','创建时间');
+				$filter->like('deleted_at','出库时间');
+				$filter->like('ship_num','到货批号');
+				//范围过滤器，调用模型的`onlyTrashed`方法，查询出被软删除的数据。
+				$filter->scope('trashed','已出库序列号')->onlyTrashed();
 			});
+			
+			$grid->actions(function ($actions) {
+			if (\request('_scope_') == 'trashed') {
+			  $actions->add(new Restore());
+			}
+			});
+
 			return $grid;
 		}
 	
 		protected function form()
 		{
-			$form = new Form(new ArriveCheck);
+			$form = new Form(new SerialNum);
 	
-			// 在表单中添加一个名为 type，值为 Product::TYPE_CROWDFUNDING 的隐藏字段
-			$form->date('arrive_date', '到货日期')->rules('required')->default(date('Y-m-d',strtotime("-0 day")));
-			$form->text('pi_num', '到货批次号')->rules('required')->default(date('Y-m-d',strtotime("-0 day")).',xxxxx');
-			$form->text('sku_num', '产品货号')->rules('required')->default('');
-			$form->text('serial_num1', '主机序列号(后四位)')->rules('required')->default('');
-			$form->text('serial_num2', '电极附件序列号(后五位)')->rules('required');
-
-	                $form->radio('if_sold', '是否售完')->options(['1' => '是', '0'=> '否'])->default('0');
-			$form->text('memo', '备注')->rules('required')->default('无');
-	
+			$form->text('productSku_id', '商品ID')->rules('required');
+			$form->text('serial_num', '序列号')->rules('required');
+			$form->text('created_at', '到货日期')->rules('required');
+			$form->text('ship_num', '到货批次号')->rules('required')->default(date('Y-m-d',strtotime("-0 day")).',xxxxx');
 			return $form;
 		}
 	}

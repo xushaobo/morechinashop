@@ -27,7 +27,7 @@ class Product extends Model
     //与商品SKU关联
     public function skus()
     {
-        return $this->hasMany(ProductSku::class);
+        return $this->hasMany(ProductSku::class,'product_id');
     }
 
     public function category()

@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class AlterRepairsTable extends Migration
+class AddSellerToOrdersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,9 +13,8 @@ class AlterRepairsTable extends Migration
      */
     public function up()
     {
-        Schema::table('repairs', function (Blueprint $table) {
-	   $table->string('main_info2')->after('remark')->default('')->comment('返回客户邮寄状太');
-	   $table->string('pay')->after('remark')->default('')->comment('收费');
+        Schema::table('orders', function (Blueprint $table) {
+		$table->string('seller')->after('remark')->default('上海牧晨电子技术有限公司');
         });
     }
 
@@ -26,8 +25,8 @@ class AlterRepairsTable extends Migration
      */
     public function down()
     {
-        Schema::table('repairs', function (Blueprint $table) {
-            //
+        Schema::table('orders', function (Blueprint $table) {
+		$table->dropColumn('seller');
         });
     }
 }

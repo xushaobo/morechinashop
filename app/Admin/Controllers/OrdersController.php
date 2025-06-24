@@ -38,7 +38,10 @@ class OrdersController extends Controller
         $grid->model()->whereNotNull('created_at')->orderBy('created_at','desc');
 
         $grid->no('订单流水号');
-
+//	$grid->column('extra', '订单备注')->display(function ($tags) {
+//	 $tags = is_array($tags) ? $tags : json_decode($tags, true);
+//	 return implode(', ',$tags); 
+//	});
         $grid->column('user.name','买家');
         $grid->total_amount('总金额')->sortable();
         $grid->total_stock_amount('总成本')->sortable();
@@ -66,10 +69,10 @@ class OrdersController extends Controller
 
         $grid->filter(function($filter){
             $filter->disableIdFilter();
-
             $filter->like('no','单订流水号');
             $filter->like('user.name','买家');
             $filter->like('remark','单位名称');
+            $filter->like('seller','出货公司名称');
             $filter->like('serial_data','序列号');
             $filter->between('paid_at','支付时间')->datetime();
         });

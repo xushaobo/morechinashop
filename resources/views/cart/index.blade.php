@@ -69,7 +69,16 @@
     <div class="form-group row">
       <label class="col-form-label col-sm-3 text-md-right">填写单位名称</label>
       <div class="col-sm-9 col-md-7">
-        <textarea name="remark" class="form-control" rows="3"></textarea>
+        <textarea name="remark" class="form-control" rows="1"></textarea>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label class="col-form-label col-sm-3 text-md-right">出货单位抬头</label>
+      <div class="col-sm-9 col-md-7">
+	<select class="form-control" name="seller" id="seller">
+	  <option value="上海牧晨电子技术有限公司" selected>上海牧晨电子技术有限公司</option>
+	  <option value="上海品纳科环保设备有限公司">上海品纳科环保设备有限公司</option>
+	</select>
       </div>
     </div>
     <div class="form-group">
@@ -166,6 +175,7 @@
           address_id: $('#order-form').find('select[name=address]').val(),
           items: [],
           remark: $('#order-form').find('textarea[name=remark]').val(),
+          seller: $('#order-form').find('select[name=seller]').val(),
           coupon_code: $('input[name=coupon_code]').val(), // 从优惠码输入框中获取优惠码
         };
         // 遍历 <table> 标签内所有带有 data-id 属性的 <tr> 标签，也就是每一个购物车中的商品 SKU

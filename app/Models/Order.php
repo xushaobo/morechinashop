@@ -36,6 +36,7 @@ class Order extends Model
         'total_amount',
 	'total_stock_amount',
         'remark',
+	'seller',
         'paid_at',
         'payment_method',
         'payment_no',

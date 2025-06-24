@@ -11,10 +11,10 @@ use Carbon\Carbon;
 
 class OrderService
 {
-    public function store(User $user, UserAddress $address, $remark, $items)
+    public function store(User $user, UserAddress $address, $remark,$seller,$items)
     {
         // 开启一个数据库事务
-        $order = \DB::transaction(function () use ($user, $address, $remark, $items) {
+        $order = \DB::transaction(function () use ($user, $address, $remark,$seller,$items) {
             // 更新此地址的最后使用时间
             $address->update(['last_used_at' => Carbon::now()]);
             // 创建一个订单
@@ -26,6 +26,7 @@ class OrderService
                     'contact_phone' => $address->contact_phone,
                 ],
                 'remark'       => $remark,
+	        'seller'       => $seller,
                 'total_amount' => 0,
 		'total_stock_amount' => 0,
             ]);

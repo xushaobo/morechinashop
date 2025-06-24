@@ -21,10 +21,10 @@ class OrdersController extends Controller
 {
     public function store(OrderRequest $request, OrderService $orderService)
     {
-		$user    = $request->user();
+	$user    = $request->user();
         $address = UserAddress::find($request->input('address_id'));
 
-        return $orderService->store($user, $address, $request->input('remark'), $request->input('items'));
+        return $orderService->store($user, $address, $request->input('remark'),$request->input('seller'), $request->input('items'));
     }
 
     protected function afterCreated(Order $order)

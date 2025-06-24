@@ -44,6 +44,7 @@
       <div class="order-info">
         <div class="line"><div class="line-label">收货地址：</div><div class="line-value">{{ join(' ', $order->address) }}</div></div>
         <div class="line"><div class="line-label">订单备注：</div><div class="line-value">{{ $order->remark ?: '-' }}</div></div>
+        <div class="line"><div class="line-label">出货公司：</div><div class="line-value">{{ $order->seller ?: '-' }}</div></div>
         <div class="line"><div class="line-label">订单编号：</div><div class="line-value">{{ $order->no }}</div></div>
         <!-- 输出物流状态 -->
         <div class="line">

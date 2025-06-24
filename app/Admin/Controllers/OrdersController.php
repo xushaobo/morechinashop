@@ -10,6 +10,7 @@ use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use App\Exceptions\InvalidRequestException;
 use App\Http\Requests\Admin\HandlePayConfirmRequest;
+// 处理空字符串
 
 use App\Exceptions\InternalException;
 
@@ -38,10 +39,11 @@ class OrdersController extends Controller
         $grid->model()->whereNotNull('created_at')->orderBy('created_at','desc');
 
         $grid->no('订单流水号');
-//	$grid->column('extra', '订单备注')->display(function ($tags) {
-//	 $tags = is_array($tags) ? $tags : json_decode($tags, true);
-//	 return implode(', ',$tags); 
-//	});
+	$grid->column('extra', '订单备注')->display(function ($tags) {
+	$tags = is_array($tags) ? $tags : json_decode($tags, true);
+        $result = implode('; ',$tags ?? []);//处理空字符串	
+	return $result;
+	});
         $grid->column('user.name','买家');
         $grid->total_amount('总金额')->sortable();
         $grid->total_stock_amount('总成本')->sortable();

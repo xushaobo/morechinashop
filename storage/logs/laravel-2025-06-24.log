@@ -151,3 +151,19 @@
 [stacktrace]
 #0 {main}
 "} 
+[2025-06-24 14:58:23] local.ERROR: Cannot declare class AddNotificationCountToUsersTable, because the name is already in use {"exception":"[object] (Symfony\\Component\\Debug\\Exception\\FatalErrorException(code: 64): Cannot declare class AddNotificationCountToUsersTable, because the name is already in use at /var/www/morechina/database/migrations/2023_03_28_134754_add_notification_count_to_users_table.php:32)
+[stacktrace]
+#0 {main}
+"} 
+[2025-06-24 14:58:56] local.ERROR: Cannot declare class AlterCustomersTable, because the name is already in use {"exception":"[object] (Symfony\\Component\\Debug\\Exception\\FatalErrorException(code: 64): Cannot declare class AlterCustomersTable, because the name is already in use at /var/www/morechina/database/migrations/2023_06_01_131346_alter_customers_table.php:38)
+[stacktrace]
+#0 {main}
+"} 
+[2025-06-24 14:59:27] local.ERROR: Cannot declare class AlterTableCustomers, because the name is already in use {"exception":"[object] (Symfony\\Component\\Debug\\Exception\\FatalErrorException(code: 64): Cannot declare class AlterTableCustomers, because the name is already in use at /var/www/morechina/database/migrations/2023_06_01_152145_alter_table_customers.php:35)
+[stacktrace]
+#0 {main}
+"} 
+[2025-06-24 14:59:49] local.ERROR: Cannot declare class AlterCustomersTable, because the name is already in use {"exception":"[object] (Symfony\\Component\\Debug\\Exception\\FatalErrorException(code: 64): Cannot declare class AlterCustomersTable, because the name is already in use at /var/www/morechina/database/migrations/2023_06_02_102025_alter_customers_table.php:32)
+[stacktrace]
+#0 {main}
+"} 

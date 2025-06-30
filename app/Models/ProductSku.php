@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class ProductSku extends Model
 {
-    protected $fillable = ['title', 'description','price','stock_price','stock'];
+    protected $fillable = ['title', 'description','image','price','stock_price','stock'];
 
     public function product()
     {
@@ -32,5 +33,13 @@ class ProductSku extends Model
     public function serialNum()
     {
 	return $this->hasMany(SerialNum::class,'productSku_id');
+    }
+    public function getImageUrlAttribute()
+    {
+	// 如果 image 字段本身就已经是完整的url就直接返回
+	if (Str::startsWith($this->attributes['image'],['http://','https://'])) {
+	   return $this->attributes['image'];
+	}
+	return \Storage::disk('public')->url($this->attributes['image']);
     }
 }

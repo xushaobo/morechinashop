@@ -43,10 +43,12 @@
                  data-stock="{{ $sku->stock }}"
                  data-toggle="tooltip"
                  title="{{ $sku->description }}"
-                 img="{{ $sku->image }}"
+                 img="{{ $sku->img }}"
                  data-placement="bottom">
                 <input type="radio" name="skus" autocomplete="off" value="{{ $sku->id }}"> {{ $sku->title }}
+	<!--
 		<img class="cover" src="{{ $sku->image_url }}" alt="">
+        -->
               </label>
             @endforeach
           </div>

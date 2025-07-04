@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class ProductSku extends Model
 {
-    protected $fillable = ['title', 'description','image','price','stock_price','stock'];
+    protected $fillable = ['title', 'description','img','price','stock_price','stock'];
 
     public function product()
     {

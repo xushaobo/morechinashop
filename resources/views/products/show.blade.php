@@ -23,7 +23,25 @@
   <div class="card-body product-info">
     <div class="row">
       <div class="col-5">
-        <img class="cover" src="{{ $product->image_url }}" alt="">
+        <img class="cover" id="mainImage" src="{{ $product->image_url }}" alt="">
+	<div class="row">
+	<!-- 缩略图列表 -->
+	<div class="col-sm-4 col-md-3">
+           <a href="#" class="thumbnail">
+            <img src="{{ $product->image_url }}" alt="通用的占位符缩略图" class="img-thumbnail">
+           </a>
+       </div>
+	<div class="col-sm-4 col-md-3">
+           <a href="#" class="thumbnail">
+            <img src="{{ $product->image_url }}" alt="通用的占位符缩略图" class="img-thumbnail">
+           </a>
+       </div>
+	<div class="col-sm-4 col-md-3">
+           <a href="#" class="thumbnail">
+            <img src="{{ $product->image_url }}" alt="通用的占位符缩略图" class="img-thumbnail">
+           </a>
+       </div>
+       </div>
       </div>
       <div class="col-7">
         <div class="title">{{ $product->title }}</div>

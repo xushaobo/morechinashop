@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class ProductSku extends Model
 {
-    protected $fillable = ['title', 'description','img','price','stock_price','stock'];
+    protected $fillable = ['title', 'description','price','stock_price','stock'];
 
     public function product()
     {
@@ -34,12 +34,13 @@ class ProductSku extends Model
     {
 	return $this->hasMany(SerialNum::class,'productSku_id');
     }
-    public function getImageUrlAttribute()
+    public function productSkuImage()
     {
-	// 如果 image 字段本身就已经是完整的url就直接返回
-	if (Str::startsWith($this->attributes['img'],['http://','https://'])) {
-	   return $this->attributes['img'];
-	}
-	return \Storage::disk('public')->url($this->attributes['img']);
+	return $this->hasMany(ProductSkuImage::class);
     }
+    public function show($id)
+    {
+        $productSku = ProductSku::with('productSkuImage')->find($id);
+    }
+    
 }

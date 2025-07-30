@@ -28,17 +28,17 @@
 	<!-- 缩略图列表 -->
 	<div class="col-sm-4 col-md-3">
            <a href="#" class="thumbnail">
-            <img src="{{ $product->image_url }}" alt="通用的占位符缩略图" class="img-thumbnail">
+            <img src="{{ $product->image_url }}" alt="通用的占位符缩略图" class="thumbnail img-thumbnail">
            </a>
        </div>
 	<div class="col-sm-4 col-md-3">
            <a href="#" class="thumbnail">
-            <img src="{{ $product->image_url }}" alt="通用的占位符缩略图" class="img-thumbnail">
+            <img src="{{ $product->image_url }}" alt="通用的占位符缩略图" class="thumbnail img-thumbnail">
            </a>
        </div>
 	<div class="col-sm-4 col-md-3">
            <a href="#" class="thumbnail">
-            <img src="{{ $product->image_url }}" alt="通用的占位符缩略图" class="img-thumbnail">
+            <img src="{{ $product->image_url }}" alt="通用的占位符缩略图" class="thumbnail img-thumbnail">
            </a>
        </div>
        </div>

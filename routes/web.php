@@ -65,3 +65,12 @@ Route::post('payment/wechat/refund_notify', 'PaymentController@wechatRefundNotif
 
 
 Route::resource('notifications', 'NotificationsController', ['only' => ['index']]);
+
+Route::get('/test-delete', function () {
+   $testFile = 'test.txt';
+   Storage::disk('public')->put($testFile, 'test');
+  if (Storage::disk('public')->exists($testFile)) {
+	return "已删除";
+   }
+   return "操作失败";
+});

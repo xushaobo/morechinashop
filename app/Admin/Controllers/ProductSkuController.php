@@ -36,6 +36,9 @@ class ProductSkuController extends Controller
         $grid->column('stock', __('库存数量'))->sortable();
         $grid->column('ontheway', __('在途数量'))->sortable();
 
+        // 移除新增按钮
+        $grid->disableCreateButton();
+
         $grid->filter(function($filter){
                                 $filter->disableIdFilter();
 
@@ -66,6 +69,14 @@ class ProductSkuController extends Controller
         $form->text('description', __('分类描述'));
         $form->number('ontheway', __('在途数量'));
         $form->number('stock', __('库存数量'));
+	// 多图上传字段
+	$form->hasMany('productSkuImage','产品SKU图片', function(Form\NestedForm $form) {
+	   $form->image('path', '图片')->uniqueName()
+		->disk('public')->move('images/productSkus')
+		->rules('image|max:2048');
+	   $form->switch('is_main', '设为主图');
+	   $form->number('order','排序')->default(0);
+        })->useTable()->mode('table');
 
 /**
         $form->text('description', __('Description'));
@@ -82,7 +93,7 @@ class ProductSkuController extends Controller
     }
 
 
-	  public function create(Content $content)
+    public function create(Content $content)
     {
         return $content
             ->header('新增SKU')

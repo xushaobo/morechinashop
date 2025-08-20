@@ -73,17 +73,11 @@ class ProductSkuController extends Controller
 	$form->hasMany('productSkuImage','产品SKU图片', function(Form\NestedForm $form) {
 	   $form->image('path', '图片')->uniqueName()
 		->disk('public')->move('images/productSkus')
-		->rules('image|max:2048');
-	   $form->switch('is_main', '设为主图');
-	   $form->number('order','排序')->default(0);
+		->rules('image|max:2048')
+		->removable();
+		
         })->useTable()->mode('table');
 
-/**
-        $form->text('description', __('Description'));
-        $form->decimal('price', __('Price'));
-        $form->decimal('stock_price', __('Stock price'))->default(0.00);
-        $form->number('product_id', __('Product id'));
-**/
 	$form->hasMany('serialnum','点击"新增"添加序列号', function(Form\NestedForm $form) {
 		$form->text('serial_num','序列号')->rules('required');
 		$form->text('ship_num','到货批次号')->rules('required')->default("0");

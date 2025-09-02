@@ -52,6 +52,9 @@ class SerialNumController extends Controller
 			$grid->column('productsku.title','货号')->sortable();
 			$grid->column('productsku.description','描述')->sortable();
 			$grid->serial_num('序列号')->sortable();
+			$grid->cost('成本')->sortable()->totalRow(function ($amount) {
+			    return "<span class='text-danger text-bold'>总成本： <i class='fa fa-yen'></i>{$amount} 元</span>";
+			});
 			$grid->created_at('创建日期')->sortable();
 			$grid->updated_at('最近更新日期')->sortable();
 			$grid->ship_num('到货批号')->sortable();
@@ -73,8 +76,9 @@ class SerialNumController extends Controller
 	
 				$filter->like('productsku.title','货号');
 				$filter->like('serial_num','序列号');
-				$filter->like('created_at','创建时间');
-				$filter->like('deleted_at','出库时间');
+				$filter->like('cost','成本');
+				$filter->between('created_at','创建时间')->datetime();
+				$filter->between('deleted_at','出库时间')->datetime();
 				$filter->like('ship_num','到货批号');
 				//范围过滤器，调用模型的`onlyTrashed`方法，查询出被软删除的数据。
 				$filter->scope('trashed','已出库序列号')->onlyTrashed();
@@ -97,6 +101,7 @@ class SerialNumController extends Controller
 			$form->text('serial_num', '序列号')->rules('required');
 			$form->text('created_at', '到货日期')->rules('required');
 			$form->text('ship_num', '到货批次号')->rules('required')->default(date('Y-m-d',strtotime("-0 day")).',xxxxx');
+			$form->text('cost', '成本')->rules('required');
 			return $form;
 		}
 	}

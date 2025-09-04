@@ -33,7 +33,10 @@ class ProductSkuController extends Controller
         $grid->column('id', __('Id'));
         $grid->column('title', __('品名'));
         $grid->column('description', __('分类描述'))->sortable();
-        $grid->column('stock', __('库存数量'))->sortable();
+        $grid->column('stock', __('库存数量'))->sortable()
+	->totalRow(function ($amount) {
+           return "<span class='text-danger text-bold'>总数量： {$amount} </span>";
+	});
         $grid->column('ontheway', __('在途数量'))->sortable();
 
         // 移除新增按钮
@@ -42,6 +45,7 @@ class ProductSkuController extends Controller
         $grid->filter(function($filter){
                                 $filter->disableIdFilter();
 
+                                $filter->like('id','ID号');
                                 $filter->like('title','货号');
                                 $filter->like('description','分类描述');
                                 $filter->notEqual('stock','剔除库存数量0');

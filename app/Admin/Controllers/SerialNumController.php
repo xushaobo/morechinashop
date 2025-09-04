@@ -74,7 +74,9 @@ class SerialNumController extends Controller
 			$grid->filter(function($filter){
 				$filter->disableIdFilter();
 	
+				$filter->like('productsku.id','ID号');
 				$filter->like('productsku.title','货号');
+				$filter->like('productsku.description','描述');
 				$filter->like('serial_num','序列号');
 				$filter->like('cost','成本');
 				$filter->between('created_at','创建时间')->datetime();

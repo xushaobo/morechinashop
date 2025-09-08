@@ -102,6 +102,7 @@ class SerialNumController extends Controller
 			$form->text('productSku_id', '商品ID')->rules('required');
 			$form->text('serial_num', '序列号')->rules('required');
 			$form->text('created_at', '到货日期')->rules('required');
+			$form->text('deleted_at', '出库日期');
 			$form->text('ship_num', '到货批次号')->rules('required')->default(date('Y-m-d',strtotime("-0 day")).',xxxxx');
 			$form->text('cost', '成本')->rules('required');
 			return $form;

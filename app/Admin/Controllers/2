@@ -32,22 +32,21 @@ class OrderItemsController extends Controller
          ->leftJoin('serial_nums', function($join) {
              $join->on('order_items.product_sku_id', '=', 'serial_nums.productSku_id')
 		  ->whereBetween('serial_nums.deleted_at', [
-                 DB::raw('orders.paid_at'),
-                 DB::raw('orders.paid_at + INTERVAL 2 DAY')
+                 DB::raw('orders.created_at'),
+                 DB::raw('orders.created_at + INTERVAL 2 DAY')
              ])
                   ->whereNotNull('serial_nums.deleted_at');
          })
-         ->select('order_items.order_id as 序号','orders.paid_at as 日期','orders.remark as 客户名称','product_skus.title as 货号/型号','order_items.price as 售价',DB::raw('COALESCE(serial_nums.cost, 0) as 成本价'),'order_items.amount as 数量')
-	->groupBy('order_items.order_id','order_items.amount','order_items.price', 'product_skus.title', 'orders.paid_at', 'orders.remark',  DB::raw('COALESCE(serial_nums.cost, 0)'))
+         ->select('order_items.*', 'orders.remark as order_remark', 'serial_nums.cost as product_cost')
 	 ->orderBy('orders.id', 'desc');
     
-    $grid->column('序号');
-    $grid->column('日期')->sortable();
-    $grid->column('客户名称');
-    $grid->column('货号/型号');
-    $grid->column('售价');
-    $grid->column('成本价');
-    $grid->column('数量');
+    // 定义列
+    $grid->column('order_id', '订单ID');
+    $grid->column('productsku.title', '货号');
+    $grid->column('order_remark', '公司名称');
+    $grid->column('product_cost', '产品成本')->
+		    return "<span class='text-danger text-bold'>总成本： <i class='fa fa-yen'></i>{$amount} 元</span>";
+		});
     
         
 
@@ -61,12 +60,5 @@ class OrderItemsController extends Controller
 	return $grid;
     }
 
-    public function show(Order $order, Content $content)
-    {
-        return $content
-            ->header('查看订单')
-            // body方法可以接受Laravel视图作为参数
-            ->body(view('admin.orders.show',['order' => 8519]));
-    }
 }
 

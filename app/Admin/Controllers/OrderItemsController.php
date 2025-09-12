@@ -61,12 +61,9 @@ class OrderItemsController extends Controller
 	return $grid;
     }
 
-    public function show(Order $order, Content $content)
+    public function show($id, Content $content)
     {
-        return $content
-            ->header('查看订单')
-            // body方法可以接受Laravel视图作为参数
-            ->body(view('admin.orders.show',['order' => 8519]));
+	  
     }
 }
 

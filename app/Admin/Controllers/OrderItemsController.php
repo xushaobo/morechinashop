@@ -41,7 +41,7 @@ class OrderItemsController extends Controller
 	->groupBy('order_items.order_id','order_items.amount','order_items.price', 'product_skus.title', 'orders.paid_at', 'orders.remark',  DB::raw('COALESCE(serial_nums.cost, 0)'))
 	 ->orderBy('orders.id', 'desc');
     
-    $grid->column('序号');
+    $grid->column('序号')->display(function ($id) { return "<a href='/admin/stocks/$id'>$id</a>"; });
     $grid->column('日期')->sortable();
     $grid->column('客户名称');
     $grid->column('货号/型号');
@@ -63,7 +63,6 @@ class OrderItemsController extends Controller
 
     public function show($id, Content $content)
     {
-	  
     }
 }
 

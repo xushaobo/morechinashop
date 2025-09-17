@@ -32,7 +32,7 @@ class OrderItemsController extends Controller
          ->leftJoin('serial_nums', function($join) {
              $join->on('order_items.product_sku_id', '=', 'serial_nums.productSku_id')
 		  ->whereBetween('serial_nums.deleted_at', [
-                 DB::raw('orders.paid_at'),
+                 DB::raw('orders.paid_at - INTERVAL 2 DAY'),
                  DB::raw('orders.paid_at + INTERVAL 2 DAY')
              ])
                   ->whereNotNull('serial_nums.deleted_at');
@@ -63,6 +63,13 @@ class OrderItemsController extends Controller
 
     public function show($id, Content $content)
     {
+
+    }
+    public function edit($id, Content $content)
+    {
+	return $content	
+	   ->header('编辑订单项目')
+           ->body($this->form()->edit($id));
     }
 }
 

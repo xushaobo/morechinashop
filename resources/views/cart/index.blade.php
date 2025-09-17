@@ -78,6 +78,7 @@
 	<select class="form-control" name="seller" id="seller">
 	  <option value="上海牧晨电子技术有限公司" selected>上海牧晨电子技术有限公司</option>
 	  <option value="上海品纳科环保设备有限公司">上海品纳科环保设备有限公司</option>
+	  <option value="上海品纳科环保设备有限公司">江苏科赛乐电子科技有限公司</option>
 	</select>
       </div>
     </div>

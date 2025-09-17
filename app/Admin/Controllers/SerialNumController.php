@@ -42,7 +42,7 @@ class SerialNumController extends Controller
 		{
 			$grid = new Grid(new SerialNum);
 			// 避免N+1问题先查出数据
-                        $grid->model()->with(['productsku.product:title']);
+                        $grid->model()->with(['productsku.product:title'])->orderBy('created_at','desc');
 			$grid->id('ID')->sortable();
 			$grid->column('productsku.product_id','所属产品id')->sortable();
 			//$grid->column('productsku.product.title','所属产品名称');			// 关联表数据

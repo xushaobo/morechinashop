@@ -58,7 +58,7 @@
             <button type="submit" class="btn btn-success" id="serial-btn">提交</button>
           </form>
 	</td>
-        <td>{{ $order->serial_data['serial_no'] }}</td>
+        <td>{{ $order->serial_data }}</td>
       </tr>
 
 

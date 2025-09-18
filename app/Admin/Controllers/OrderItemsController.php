@@ -46,7 +46,7 @@ class OrderItemsController extends Controller
     $grid->column('客户名称');
     $grid->column('货号/型号');
     $grid->column('售价');
-    $grid->column('成本价');
+    $grid->column('成本价')->sortable();
     $grid->column('数量');
     
         

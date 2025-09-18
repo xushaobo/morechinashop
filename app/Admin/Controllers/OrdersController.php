@@ -55,6 +55,7 @@ class OrdersController extends Controller
         $grid->refund_status('审批状态')->sortable()->display(function($value){
             return Order::$refundStatusMap[$value];
         });
+        $grid->column('serial_data','序列号');
         //禁用创建按钮
         $grid->disableCreateButton();
         $grid->actions(function ($actions){

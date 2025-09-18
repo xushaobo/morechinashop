@@ -106,4 +106,9 @@ class Order extends Model
 
         return false;
     }
+    public function getSerialDataAttribute($value)
+    {
+	$data = json_decode($value, true);
+	return $data['serial_no'] ?? null;
+    }
 }

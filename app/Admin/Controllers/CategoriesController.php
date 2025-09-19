@@ -48,6 +48,7 @@ class CategoriesController extends Controller
         $grid->actions(function ($actions) {
             // 不展示 Laravel-Admin 默认的查看按钮
             $actions->disableView();
+	    $actions->disableDelete();
         });
 
         $grid->filter(function($filter){

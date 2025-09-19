@@ -26,6 +26,8 @@ class RepairsController extends AdminController
     {
         $grid = new Grid(new Repair());
 
+	$grid->model()->orderBy('id','desc');
+
         $grid->column('id', __('序号'))->sortable();
         $grid->column('repair_date', __('返修日期'))->sortable();
         $grid->column('remark', __('客户名称'))->width(200);

@@ -24,7 +24,8 @@ class OrderItemsController extends Controller
     protected function grid()
     {
         $grid = new Grid(new OrderItem);
-        
+	// 全部关闭
+//	$grid->disableActions();
 	 // 使用LEFT JOIN查询
 	 $grid->model()
          ->leftJoin('orders', 'order_items.order_id', '=', 'orders.id')
@@ -32,8 +33,8 @@ class OrderItemsController extends Controller
          ->leftJoin('serial_nums', function($join) {
              $join->on('order_items.product_sku_id', '=', 'serial_nums.productSku_id')
 		  ->whereBetween('serial_nums.deleted_at', [
-                 DB::raw('orders.paid_at - INTERVAL 2 DAY'),
-                 DB::raw('orders.paid_at + INTERVAL 2 DAY')
+                 DB::raw('orders.paid_at - INTERVAL 1 DAY'),
+                 DB::raw('orders.paid_at + INTERVAL 1 DAY')
              ])
                   ->whereNotNull('serial_nums.deleted_at');
          })
@@ -69,7 +70,7 @@ class OrderItemsController extends Controller
     {
 	return $content	
 	   ->header('编辑订单项目')
-           ->body($this->form()->edit($id));
+           ->body($this->form('true')->edit($id));
     }
 }
 

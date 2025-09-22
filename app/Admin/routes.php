@@ -37,6 +37,7 @@ Route::group([
 
     $router->get('orders', 'OrdersController@index')->name('admin.orders.index');
     $router->get('stocks', 'OrderItemsController@index')->name('admin.orderItems.index');
+    $router->get('stocks/{order}/edit', 'OrderItemsController@edit')->name('admin.orderItems.edit');
     $router->get('stocks/{order}', 'OrdersController@show')->name('admin.orders.show');
     $router->get('orders/{order}', 'OrdersController@show')->name('admin.orders.show');
     $router->post('orders/{order}/ship', 'OrdersController@ship')->name('admin.orders.ship');

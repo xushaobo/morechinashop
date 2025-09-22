@@ -70,7 +70,17 @@ class OrderItemsController extends Controller
     {
 	return $content	
 	   ->header('编辑订单项目')
-           ->body($this->form('true')->edit($id));
+           ->body($this->form(true)->edit($id));
+    }
+    public function create(Content $content)
+    {
+	return $content	
+	   ->header('创建订单项目')
+           ->body($this->form(false));
+    }
+    public function form($isEditing = false)
+    {
+	$form = new Form(new OrderItem);
     }
 }
 

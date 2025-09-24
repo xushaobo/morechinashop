@@ -38,8 +38,22 @@ $grid->model()
         'product_skus.title as 货号/型号',
         'order_items.price as 售价',
         'order_items.amount as 数量',
+	DB::raw('(
+            SELECT GROUP_CONCAT(serial_num SEPARATOR ", ")
+            FROM serial_nums 
+            WHERE productSku_id = order_items.product_sku_id
+            AND deleted_at IS NOT NULL
+            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
+        ) as 序列号列表'),
+	 DB::raw('(
+            SELECT COUNT(serial_num)  -- 添加序列号数量统计
+            FROM serial_nums 
+            WHERE productSku_id = order_items.product_sku_id
+            AND deleted_at IS NOT NULL
+            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
+        ) as 序列号数量'),
         DB::raw('(
-            SELECT AVG(cost) 
+            SELECT AVG(cost)
             FROM serial_nums 
             WHERE productSku_id = order_items.product_sku_id
             AND deleted_at IS NOT NULL
@@ -62,16 +76,62 @@ $grid->model()
     $profit = $sales - $totalCost;
     
     return number_format($profit, 2);
+    });
+    // 显示序列号
+    $grid->column('序列号')->display(function () {
+       return $this->序列号列表 ?: '无';
+    });
+    
+    $grid->column('数量一致性')->display(function () {
+    $serialCount = $this->序列号数量 ?: 0;
+    $orderAmount = $this->数量;
+    $difference = $serialCount - $orderAmount;
+    
+    if ($serialCount == $orderAmount) {
+        return "<span style='color: green; font-weight: bold;'>✓ 一致</span>";
+    } elseif ($serialCount > $orderAmount) {
+        return "<span style='color: orange; font-weight: bold;'>! 序列号多{$difference}个</span>";
+    } else {
+        return "<span style='color: red; font-weight: bold;'>✗ 序列号少" . abs($difference) . "个</span>";
+    }
 });
+
     
         
 
         $grid->filter(function($filter){
             $filter->disableIdFilter();
-
 	    $filter->between('order.paid_at','下单日期')->datetime();
             $filter->like('productSku.title','型号');
             $filter->like('order.remark','单位名称');
+
+	$filter->where(function ($query) {
+        $value = request()->input('consistent'); // 从请求中获取值
+        
+        if ($value == 1) {
+            // 一致的情况
+            $query->whereRaw('COALESCE((
+                SELECT COUNT(serial_num) 
+                FROM serial_nums 
+                WHERE productSku_id = order_items.product_sku_id
+                AND deleted_at IS NOT NULL
+                AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
+            ), 0) = order_items.amount');
+        } elseif ($value == 2) {
+            // 不一致的情况
+            $query->whereRaw('COALESCE((
+                SELECT COUNT(serial_num) 
+                FROM serial_nums 
+                WHERE productSku_id = order_items.product_sku_id
+                AND deleted_at IS NOT NULL
+                AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
+            ), 0) != order_items.amount');
+        }
+    }, '数量一致性', 'consistent')->radio([
+	'all' => '显示所有',
+        1 => '一致',
+        2 => '不一致',
+    ]);
         });
 	return $grid;
     }

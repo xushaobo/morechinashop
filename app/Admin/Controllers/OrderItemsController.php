@@ -3,9 +3,11 @@
 namespace App\Admin\Controllers;
 
 use App\Models\OrderItem;
+use App\Models\SerialNum;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Grid;
+use Encore\Admin\Form;
 use Encore\Admin\Layout\Content;
 
 use Illuminate\Support\Facades\DB; // 记得引入 DB Facade
@@ -43,8 +45,15 @@ $grid->model()
             FROM serial_nums 
             WHERE productSku_id = order_items.product_sku_id
             AND deleted_at IS NOT NULL
-            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
+            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 DAY AND orders.paid_at + INTERVAL 1 DAY 
         ) as 序列号列表'),
+	DB::raw('(
+            SELECT GROUP_CONCAT(deleted_at SEPARATOR ", ")
+            FROM serial_nums 
+            WHERE productSku_id = order_items.product_sku_id
+            AND deleted_at IS NOT NULL
+            AND deleted_at BETWEEN orders.paid_at - INTERVAL 2 DAY AND orders.paid_at + INTERVAL 2 DAY 
+        ) as 出库时间'),
 	 DB::raw('(
             SELECT COUNT(serial_num)  -- 添加序列号数量统计
             FROM serial_nums 
@@ -58,7 +67,8 @@ $grid->model()
             WHERE productSku_id = order_items.product_sku_id
             AND deleted_at IS NOT NULL
             AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 DAY AND orders.paid_at + INTERVAL 1 DAY
-        ) as 成本价')
+        ) as 成本价'),
+	
     )
     ->orderBy('orders.id', 'desc');
     $grid->column('序号')->display(function ($id) { return "<a href='/admin/stocks/$id'>$id</a>"; });
@@ -94,6 +104,12 @@ $grid->model()
     } else {
         return "<span style='color: red; font-weight: bold;'>✗ 序列号少" . abs($difference) . "个</span>";
     }
+});
+
+// 在 Grid 中这样定义
+$grid->column('出库时间')->display(function () {
+    // 显示逻辑
+    return $this->出库时间 ?: '无出库记录';
 });
 
     

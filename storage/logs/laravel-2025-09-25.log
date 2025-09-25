@@ -1,0 +1,4 @@
+[2025-09-25 10:00:40] local.ERROR: Class declarations may not be nested {"exception":"[object] (Symfony\\Component\\Debug\\Exception\\FatalErrorException(code: 64): Class declarations may not be nested at /var/www/morechina/app/Admin/Controllers/OrderItemsController.php:121)
+[stacktrace]
+#0 {main}
+"} 

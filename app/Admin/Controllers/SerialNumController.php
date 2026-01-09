@@ -52,11 +52,17 @@ class SerialNumController extends Controller
 			$grid->column('productsku.title','货号')->sortable();
 			$grid->column('productsku.description','描述')->sortable();
 			$grid->serial_num('序列号')->sortable();
-			$grid->cost('成本')->sortable()->totalRow(function ($amount) {
+			$grid->cost('成本')->sortable()->editable()->totalRow(function ($amount) {
 			    return "<span class='text-danger text-bold'>总成本： <i class='fa fa-yen'></i>{$amount} 元</span>";
 			});
 			$grid->created_at('创建日期')->sortable();
 			$grid->updated_at('最近更新日期')->sortable();
+		        $grid->column('deleted_at', '出库时间')
+		        ->editable('datetime')
+		        ->display(function ($value) {
+			// 直接返回，不进行时间解析
+			return $value ?: '未出库';
+		        });
 			$grid->ship_num('到货批号')->sortable();
 
 	

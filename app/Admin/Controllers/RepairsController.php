@@ -61,6 +61,7 @@ $grid->filter(function($filter){
                                 $filter->like('remark','客户名称');
                                 $filter->like('send_num','快递单号');
                                 $filter->like('serial_num','序列号和返修快递单号');
+                                $filter->like('brand','品牌');
                                 $filter->like('type','型号');
 				$filter->equal('des_add','返修状态')->radio([
 				'' => 'All',

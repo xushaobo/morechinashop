@@ -87,6 +87,7 @@ class ProductSkuController extends Controller
 		$form->text('ship_num','到货批次号')->rules('required')->default("0");
 		$form->text('cost','成本')->rules('required')->default("0");
 		$form->date('created_at', '创建时间')->rules('required')->default(date('Y-m-d',strtotime("-0 day")));
+		$form->text('deleted_at', '出库时间');
 	});
         return $form;
     }

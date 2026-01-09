@@ -4,6 +4,7 @@ namespace App\Admin\Controllers;
 
 use App\Models\OrderItem;
 use App\Models\SerialNum;
+use Encore\Admin\Controllers\AdminController;
 use App\Admin\Actions\EditOutboundTimeAction; // 导入修改删除时间类
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
@@ -14,7 +15,7 @@ use Encore\Admin\Layout\Content;
 use Illuminate\Support\Facades\DB; // 记得引入 DB Facade
 
 
-class OrderItemsController extends Controller
+class OrderItemsController extends AdminController
 {
     use HasResourceActions; 
 	
@@ -46,14 +47,14 @@ $grid->model()
             FROM serial_nums 
             WHERE productSku_id = order_items.product_sku_id
             AND deleted_at IS NOT NULL
-            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 DAY AND orders.paid_at + INTERVAL 1 DAY 
+            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
         ) as 序列号列表'),
 	DB::raw('(
             SELECT GROUP_CONCAT(deleted_at SEPARATOR ", ")
             FROM serial_nums 
             WHERE productSku_id = order_items.product_sku_id
             AND deleted_at IS NOT NULL
-            AND deleted_at BETWEEN orders.paid_at - INTERVAL 2 DAY AND orders.paid_at + INTERVAL 2 DAY 
+            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
         ) as 出库时间'),
 	 DB::raw('(
             SELECT COUNT(serial_num)  -- 添加序列号数量统计
@@ -74,8 +75,8 @@ $grid->model()
     ->orderBy('orders.id', 'desc');
     $grid->column('序号')->display(function ($id) { return "<a href='/admin/stocks/$id'>$id</a>"; });
     $grid->column('日期')->sortable();
-    $grid->column('客户名称');
-    $grid->column('货号/型号');
+    $grid->column('客户名称')->sortable();
+    $grid->column('货号/型号')->sortable();
     $grid->column('售价');
     $grid->column('成本价')->sortable();
     $grid->column('数量');
@@ -122,6 +123,10 @@ $grid->column('出库时间')->display(function () {
             $filter->like('productSku.title','型号');
             $filter->like('order.remark','单位名称');
 
+
+
+
+
 	$filter->where(function ($query) {
         $value = request()->input('consistent'); // 从请求中获取值
         
@@ -153,25 +158,39 @@ $grid->column('出库时间')->display(function () {
 	return $grid;
     }
 
-    public function show($id, Content $content)
-    {
 
-    }
-    public function edit($id, Content $content)
+     protected function detail($id)
     {
-	return $content	
-	   ->header('编辑订单项目')
-           ->body($this->form(true)->edit($id));
+        $show = new Show(OrderItem::findOrFail($id));
+
+        $show->field('id', __('ID'));
+        $show->field('order_id', __('订单ID'));
+        $show->field('product_name', __('产品名称'));
+        $show->field('price', __('价格'));
+        $show->field('quantity', __('数量'));
+        $show->field('created_at', __('创建时间'));
+        $show->field('updated_at', __('更新时间'));
+
+        return $show;
     }
-    public function create(Content $content)
+
+    /**
+     * Make a form builder.
+     *
+     * @return Form
+     */
+    protected function form()
     {
-	return $content	
-	   ->header('创建订单项目')
-           ->body($this->form(false));
-    }
-    public function form($isEditing = false)
-    {
-	$form = new Form(new OrderItem);
+        $form = new Form(new OrderItem());
+
+        $form->display('order_id', __('订单ID'));
+        $form->text('product_sku_id', __('产品ID'));
+        $form->decimal('price', __('价格'));
+        $form->number('quantity', __('数量'));
+        $form->display('created_at', __('创建时间'));
+        $form->display('updated_at', __('更新时间'));
+
+        return $form;
     }
 }
 

@@ -38,6 +38,7 @@ class OrdersController extends Controller
 
         $grid->model()->whereNotNull('created_at')->orderBy('created_at','desc');
 
+        $grid->id('序号');
         $grid->no('订单流水号');
 	$grid->column('extra', '订单备注')->display(function ($tags) {
 	$tags = is_array($tags) ? $tags : json_decode($tags, true);
@@ -55,7 +56,7 @@ class OrdersController extends Controller
         $grid->refund_status('审批状态')->sortable()->display(function($value){
             return Order::$refundStatusMap[$value];
         });
-        $grid->column('serial_data','序列号');
+   //     $grid->column('serial_data','序列号');
         //禁用创建按钮
         $grid->disableCreateButton();
         $grid->actions(function ($actions){

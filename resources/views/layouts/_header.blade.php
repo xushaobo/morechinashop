@@ -2,7 +2,10 @@
   <div class="container">
 	  <!-- Branding Image -->
 	  <a class="navbar-brand" href="{{ url('/') }}">
-		上海牧晨电子管理后台
+	     商品前台	
+	  </a>
+	  <a class="navbar-brand" href="{{ url('/admin/product_sku') }}">
+	       库存查询	
 	  </a>
 	  <a class="navbar-brand" href="{{ url('/admin/repairs') }}">
 		WTW返修表	

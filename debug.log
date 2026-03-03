@@ -1,0 +1,78 @@
+== Info: Rebuilt URL to: https://repo.packagist.org/
+== Info:   Trying 2400:52e0:1a01::996:1...
+== Info:   Trying 143.244.50.85...
+== Info: Connected to repo.packagist.org (2400:52e0:1a01::996:1) port 443 (#0)
+== Info: found 129 certificates in /etc/ssl/certs/ca-certificates.crt
+== Info: found 520 certificates in /etc/ssl/certs
+== Info: ALPN, offering http/1.1
+== Info: SSL connection using TLS1.2 / ECDHE_RSA_AES_256_GCM_SHA384
+== Info: 	 server certificate verification OK
+== Info: 	 server certificate status verification SKIPPED
+== Info: 	 common name: repo.packagist.org (matched)
+== Info: 	 server certificate expiration date OK
+== Info: 	 server certificate activation date OK
+== Info: 	 certificate public key: RSA
+== Info: 	 certificate version: #3
+== Info: 	 subject: CN=repo.packagist.org
+== Info: 	 start date: Mon, 05 Jan 2026 20:03:24 GMT
+== Info: 	 expire date: Sun, 05 Apr 2026 20:03:23 GMT
+== Info: 	 issuer: C=US,O=Let's Encrypt,CN=R12
+== Info: 	 compression: NULL
+== Info: ALPN, server accepted to use http/1.1
+=> Send header, 82 bytes (0x52)
+0000: GET / HTTP/1.1
+0010: Host: repo.packagist.org
+002a: User-Agent: curl/7.47.0
+0043: Accept: */*
+0050: 
+<= Recv header, 24 bytes (0x18)
+0000: HTTP/1.1 404 Not Found
+<= Recv header, 37 bytes (0x25)
+0000: Date: Wed, 04 Feb 2026 07:01:26 GMT
+<= Recv header, 25 bytes (0x19)
+0000: Content-Type: text/html
+<= Recv header, 28 bytes (0x1c)
+0000: Transfer-Encoding: chunked
+<= Recv header, 24 bytes (0x18)
+0000: Connection: keep-alive
+<= Recv header, 23 bytes (0x17)
+0000: Vary: Accept-Encoding
+<= Recv header, 26 bytes (0x1a)
+0000: Server: BunnyCDN-LA1-996
+<= Recv header, 23 bytes (0x17)
+0000: CDN-PullZone: 3363232
+<= Recv header, 28 bytes (0x1c)
+0000: CDN-RequestCountryCode: CN
+<= Recv header, 38 bytes (0x26)
+0000: Cache-Control: public, max-age=86400
+<= Recv header, 29 bytes (0x1d)
+0000: CDN-StorageBalancer: WA-626
+<= Recv header, 28 bytes (0x1c)
+0000: CDN-StorageServer: DE-1140
+<= Recv header, 20 bytes (0x14)
+0000: CDN-ProxyVer: 1.43
+<= Recv header, 30 bytes (0x1e)
+0000: CDN-RequestPullSuccess: True
+<= Recv header, 26 bytes (0x1a)
+0000: CDN-RequestPullCode: 404
+<= Recv header, 35 bytes (0x23)
+0000: CDN-CachedAt: 02/03/2026 14:09:55
+<= Recv header, 25 bytes (0x19)
+0000: CDN-EdgeStorageId: 1115
+<= Recv header, 49 bytes (0x31)
+0000: CDN-RequestId: e1b4b7a671da1507486df3e1a66f9d50
+<= Recv header, 16 bytes (0x10)
+0000: CDN-Cache: HIT
+<= Recv header, 17 bytes (0x11)
+0000: CDN-Status: 404
+<= Recv header, 20 bytes (0x14)
+0000: CDN-RequestTime: 0
+<= Recv header, 2 bytes (0x2)
+0000: 
+<= Recv data, 41 bytes (0x29)
+0000: 23
+0004: "404 not found, no packages here"..
+<= Recv data, 5 bytes (0x5)
+0000: 0
+0003: 
+== Info: Connection #0 to host repo.packagist.org left intact

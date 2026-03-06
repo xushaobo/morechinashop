@@ -58,6 +58,7 @@ class RepairsController extends AdminController
 $grid->filter(function($filter){
                                 $filter->disableIdFilter();
 
+                                $filter->like('repair_date','返修日期');
                                 $filter->like('remark','客户名称');
                                 $filter->like('send_num','快递单号');
                                 $filter->like('serial_num','序列号和返修快递单号');

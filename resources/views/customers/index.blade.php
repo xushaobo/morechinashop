@@ -74,6 +74,8 @@
             @endforeach
             </tbody>
           </table>
+	    {{-- 输出分页链接（默认使用 Bootstrap 样式） --}}
+            {{ $customers->links() }}
         </div>
       </div>
     </div>

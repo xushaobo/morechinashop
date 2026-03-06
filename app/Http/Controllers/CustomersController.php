@@ -14,9 +14,8 @@ class CustomersController extends Controller
 {
     public function index(Request $request)
     {
-	return view('customers.index',[
-		'customers' => $request->user()->customers,	   
-	]);
+	$customers = $request->user()->customers()->paginate(5);
+	return view('customers.index', compact('customers'));
     }
     
     public function create()

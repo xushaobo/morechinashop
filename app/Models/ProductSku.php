@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class ProductSku extends Model
 {
-    protected $fillable = ['title', 'description','price','stock_price','stock'];
+    protected $fillable = ['title', 'description','price','stock_price','stock', 'master_sku_id'];
 
     public function product()
     {
@@ -41,6 +41,16 @@ class ProductSku extends Model
     public function show($id)
     {
         $productSku = ProductSku::with('productSkuImage')->find($id);
+    }
+    // 子SKU所属的主SKU
+    public function masterSku()
+    {
+	return $this->belogsTo(ProductSku::class, 'master_sku_id');
+    }
+    // 主 SKU 拥有的所有子 SKU
+    public function childSkus()
+    {
+	return $this->hasMany(ProductSku::class, 'master_sku_id');
     }
     
 }

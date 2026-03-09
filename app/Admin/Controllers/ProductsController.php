@@ -139,6 +139,7 @@ class ProductsController extends Controller
         $form->hasMany('skus', 'SKU 列表', function (Form\NestedForm $form) {
             $form->text('title', 'SKU 名称')->rules('required');
             $form->text('description', 'SKU 描述')->rules('required');
+            $form->text('master_sku_id', '关联主SKU')->rules('nullable|integer')->help('如果该SKU是子SKU,请填写主SKU的ID');
             //$form->image('img', 'SKU图片');
             $form->text('price', '单价')->rules('required|numeric');
             $form->text('stock_price', '成本价')->rules('required|numeric');

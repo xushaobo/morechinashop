@@ -31,6 +31,7 @@ class ProductSkuController extends Controller
         $grid = new Grid(new ProductSku());
 
         $grid->column('id', __('Id'));
+	$grid->column('master_sku_id', ('关联主商品ID'))->sortable();
         $grid->column('title', __('品名'));
         $grid->column('description', __('分类描述'))->sortable();
         $grid->column('stock', __('库存数量'))->sortable()
@@ -69,6 +70,7 @@ class ProductSkuController extends Controller
     {
         $form = new Form(new ProductSku());
 
+        $form->text('master_sku_id', __('关联主商品ID'));
         $form->text('title', __('品名货号'));
         $form->text('description', __('分类描述'));
         $form->number('ontheway', __('在途数量'));

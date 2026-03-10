@@ -59,6 +59,7 @@
                  class="btn sku-btn"
                  data-price="{{ $sku->price  }}"
                  data-stock="{{ $sku->stock }}"
+                 data-totalStock="{{ $sku->total_stock }}"
                  data-toggle="tooltip"
                  title="{{ $sku->description }}"
                  img="{{ $sku->img }}"
@@ -86,11 +87,11 @@
 
 
         <div class="skus">
-          <label style="color: red">在途</label>
+          <label style="color: red">总库存</label>
           <div class="btn-group btn-group-toggle" data-toggle="buttons">
             @foreach($product->skus as $sku)
               <label class="btn sku-btn"  title="{{ $sku->title }}" >
-                <input type="radio" name="skus2" autocomplete="off" value="{{ $sku->title }}"> {{ $sku-> ontheway }}
+                <input type="radio" name="skus2" autocomplete="off" value="{{ $sku->total_stock }}"> {{ $sku->total_stock }}
               </label>
             @endforeach
             <label>件</label>
@@ -104,8 +105,9 @@
             @else
             <button class="btn btn-success btn-favor">❤ 收藏</button>
             @endif
-			<button class="btn btn-primary btn-add-to-cart">加入购物车</button>
+	    <button class="btn btn-primary btn-add-to-cart">加入购物车</button>
            <div class="cart_amount"><label>数量</label><input type="text" class="form-control form-control-sm" value="1"><span>件</span><span class="stock"></span></div>
+           <div><label>总数量</label><span class="totalStock"></span></div>
         </div>
       </div>
     </div>
@@ -140,6 +142,7 @@
       $('.sku-btn').click(function () {
         $('.product-info .price span').text($(this).data('price'));
         $('.product-info .stock').text('库存：' + $(this).data('stock') + '件');
+        $('.product-info .totalStock').text('总库存：' + $(this).attr('data-totalStock') + '件');
       });
       // 监听收藏按钮的点击事件
       $('.btn-favor').click(function () {

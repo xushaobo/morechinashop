@@ -34,7 +34,10 @@ class ProductSkuController extends Controller
 	$grid->column('master_sku_id', ('关联主商品ID'))->sortable();
         $grid->column('title', __('品名'));
         $grid->column('description', __('分类描述'))->sortable();
-        $grid->column('stock', __('库存数量'))->sortable()
+        $grid->column('total_stock', __('总库存数量'))->display(function () {
+		return $this->total_stock; //调用访问控制器
+	});
+        $grid->column('stock', __('自身库存数量'))->sortable()
 	->totalRow(function ($amount) {
            return "<span class='text-danger text-bold'>总数量： {$amount} </span>";
 	});

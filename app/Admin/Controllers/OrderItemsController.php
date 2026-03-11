@@ -56,13 +56,18 @@ $grid->model()
             AND deleted_at IS NOT NULL
             AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
         ) as 出库时间'),
-	 DB::raw('(
-            SELECT COUNT(serial_num)  -- 添加序列号数量统计
-            FROM serial_nums 
-            WHERE productSku_id = order_items.product_sku_id
-            AND deleted_at IS NOT NULL
-            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
-        ) as 序列号数量'),
+DB::raw("(
+    SELECT COUNT(serial_num) 
+    FROM serial_nums 
+    WHERE deleted_at IS NOT NULL 
+      AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
+      AND productSku_id IN (
+          SELECT id FROM product_skus 
+          WHERE COALESCE(master_sku_id, id) = (
+              SELECT COALESCE(master_sku_id, id) FROM product_skus WHERE id = order_items.product_sku_id
+          )
+      )
+) as 序列号数量"),
         DB::raw('(
             SELECT AVG(cost)
             FROM serial_nums 

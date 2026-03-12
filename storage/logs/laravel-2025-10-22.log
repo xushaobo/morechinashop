@@ -1,4 +1,0 @@
-[2025-10-22 14:27:41] local.ERROR: Allowed memory size of 134217728 bytes exhausted (tried to allocate 4198400 bytes) {"userId":1,"exception":"[object] (Symfony\\Component\\Debug\\Exception\\FatalErrorException(code: 1): Allowed memory size of 134217728 bytes exhausted (tried to allocate 4198400 bytes) at /var/www/morechina/vendor/barryvdh/laravel-debugbar/src/Storage/FilesystemStorage.php:43)
-[stacktrace]
-#0 {main}
-"} 

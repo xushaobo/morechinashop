@@ -90,6 +90,14 @@
             <div class="bottom">
               <div class="sold_count">销量 <span>{{ $product->sold_count }}笔</span></div>
               <div class="review_count">评价 <span>{{ $product->review_count }}</span></div>
+	       {{-- 新增库存状态 --}}
+	      <div class="stock_status">
+        	@if($product->has_stock)
+		<span class="badge badge-success">有货</span>
+       		 @else
+	        <span class="badge badge-secondary">缺货</span>
+       		 @endif
+    	      </div>
             </div>
           </div>
         </div>

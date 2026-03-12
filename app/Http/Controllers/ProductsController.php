@@ -73,24 +73,28 @@ class ProductsController extends Controller
 	     'categoryTree' => $categoryService->getCategoryTree(),
         ]);
     }
-	 public function show(Product $product, Request $request)
-    {
-        if (!$product->on_sale) {
-            throw new InvalidRequestException('商品未上架');
-        }
-
-        $favored = false;
-        // 用户未登录时返回的是 null，已登录时返回的是对应的用户对象
-        if($user = $request->user()) {
-            // 从当前用户已收藏的商品中搜索 id 为当前商品 id 的商品
-            // boolval() 函数用于把值转为布尔值
-            $favored = boolval($user->favoriteProducts()->find($product->id));
-        }
-
-        return view('products.show', ['product' => $product, 'favored' => $favored]);
+public function show(Product $product, Request $request)
+{
+    if (!$product->on_sale) {
+        throw new InvalidRequestException('商品未上架');
     }
 
-	  public function favor(Product $product, Request $request)
+    // 加载 SKU 关联（如果模型没有默认加载的话）
+    // 如果已经在模型全局作用域或控制器其他位置加载过，可省略此行
+    $product->load('skus');
+
+    $favored = false;
+    if ($user = $request->user()) {
+        $favored = boolval($user->favoriteProducts()->find($product->id));
+    }
+
+    return view('products.show', [
+        'product'     => $product,
+        'favored'     => $favored,
+    ]);
+}
+
+  public function favor(Product $product, Request $request)
     {
         $user = $request->user();
         if ($user->favoriteProducts()->find($product->id)) {

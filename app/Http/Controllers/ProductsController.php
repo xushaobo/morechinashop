@@ -24,8 +24,7 @@ class ProductsController extends Controller
             // 模糊搜索商品标题、商品详情、SKU 标题、SKU描述
             $builder->where(function ($query) use ($like) {
 		$query->orWhereHas('skus', function ($query) use ($like) {
-	        $query->whereNull('master_sku_id')
-         	 ->where(function ($q) use ($like) {
+         	 $query->where(function ($q) use ($like) {
              	 $q->where('title', 'like', $like)
                  ->orWhere('description', 'like', $like);
             });

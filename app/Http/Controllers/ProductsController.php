@@ -13,66 +13,87 @@ use App\Services\CategoryService;
 
 class ProductsController extends Controller
 {
-    public function index(Request $request, CategoryService $categoryService)
-    {
-		 // 创建一个查询构造器
-        $builder = Product::query()->where('on_sale', true);
-        // 判断是否有提交 search 参数，如果有就赋值给 $search 变量
-        // search 参数用来模糊搜索商品
-        if ($search = $request->input('search', '')) {
-            $like = '%'.$search.'%';
-            // 模糊搜索商品标题、商品详情、SKU 标题、SKU描述
-            $builder->where(function ($query) use ($like) {
-		$query->orWhereHas('skus', function ($query) use ($like) {
-         	 $query->where(function ($q) use ($like) {
-             	 $q->where('title', 'like', $like)
-                 ->orWhere('description', 'like', $like);
-            });
-            });
-            });
-        }
+public function index(Request $request, CategoryService $categoryService)
+{
+    $builder = Product::query()->where('on_sale', true);
 
-	 // 如果有传入 category_id 字段，并且在数据库中有对应的类目
-        if ($request->input('category_id') && $category = Category::find($request->input('category_id'))) {
-            // 如果这是一个父类目
-	    if ($category->is_directory) {
-                // 则筛选出该父类目下所有子类目的商品
-		$builder->whereHas('category',function ($query) use ($category) {
-			$query->where('path', 'like', $category->path.$category->id.'-%');
-		});
+    $search = $request->input('search', '');
+    $order = $request->input('order', ''); // 你已经在后面用到了 $order
+
+    if ($search) {
+        $like = '%' . $search . '%';
+        // 筛选出至少有一个SKU标题或描述匹配的商品
+        $builder->where(function ($query) use ($like) {
+            $query->orWhereHas('skus', function ($query) use ($like) {
+                $query->where(function ($q) use ($like) {
+                    $q->where('title', 'like', $like)
+                      ->orWhere('description', 'like', $like);
+                });
+            });
+        });
+
+        // 预加载时只加载匹配搜索条件的SKU
+        $builder->with(['skus' => function ($query) use ($like) {
+            $query->where(function ($q) use ($like) {
+                $q->where('title', 'like', $like)
+                  ->orWhere('description', 'like', $like);
+            });
+        }]);
+    } else {
+        // 无搜索时，加载所有SKU
+        $builder->with('skus');
+    }
+
+    // 类目筛选（保持不变）
+    if ($request->input('category_id') && $category = Category::find($request->input('category_id'))) {
+        if ($category->is_directory) {
+            $builder->whereHas('category', function ($query) use ($category) {
+                $query->where('path', 'like', $category->path . $category->id . '-%');
+            });
         } else {
-		//如果不是一个父类目，则直接筛选此类目下的商品
-		$builder->where('category_id',$category->id);
-	}
-}
+            $builder->where('category_id', $category->id);
+        }
+    }
 
-        // 是否有提交 order 参数，如果有就赋值给 $order 变量
-        // order 参数用来控制商品的排序规则
-        if ($order = $request->input('order', '')) {
-            // 是否是以 _asc 或者 _desc 结尾
-            if (preg_match('/^(.+)_(asc|desc)$/', $order, $m)) {
-                // 如果字符串的开头是这 3 个字符串之一，说明是一个合法的排序值
-                if (in_array($m[1], ['price', 'sold_count', 'rating'])) {
-                    // 根据传入的排序值来构造排序参数
-                    $builder->orderBy($m[1], $m[2]);
-                }
+    // 排序（保持不变）
+    if ($order) {
+        if (preg_match('/^(.+)_(asc|desc)$/', $order, $m)) {
+            if (in_array($m[1], ['price', 'sold_count', 'rating'])) {
+                $builder->orderBy($m[1], $m[2]);
             }
         }
-
-//        修复分页导致category丢失
-//        $products = $builder->paginate(16);
-        $products = $builder->paginate(16)->appends(request()->query());
-
-       return view('products.index', [
-            'products' => $products,
-            'filters'  => [
-                'search' => $search,
-                'order'  => $order,
-            ],
-	     'category' => $category ?? null,
-	     'categoryTree' => $categoryService->getCategoryTree(),
-        ]);
     }
+
+    // 分页
+    $products = $builder->paginate(16)->appends(request()->query());
+
+    // 为每个商品添加库存标志
+    $products->each(function ($product) use ($search) {
+        // 整体是否有货（所有SKU中是否有库存>0）
+        $product->has_stock = $product->skus->contains(function ($sku) {
+            return $sku->stock > 0;
+        });
+
+        // 匹配的SKU中是否有货（如果无搜索，则与整体相同）
+        if ($search) {
+            $product->matching_skus_have_stock = $product->skus->contains(function ($sku) {
+                return $sku->stock > 0;
+            });
+        } else {
+            $product->matching_skus_have_stock = $product->has_stock;
+        }
+    });
+
+    return view('products.index', [
+        'products' => $products,
+        'filters'  => [
+            'search' => $search,
+            'order'  => $order,
+        ],
+        'category' => $category ?? null,
+        'categoryTree' => $categoryService->getCategoryTree(),
+    ]);
+}
 public function show(Product $product, Request $request)
 {
     if (!$product->on_sale) {
@@ -92,6 +113,8 @@ public function show(Product $product, Request $request)
         'product'     => $product,
         'favored'     => $favored,
     ]);
+    
+    
 }
 
   public function favor(Product $product, Request $request)

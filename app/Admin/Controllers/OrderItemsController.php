@@ -43,19 +43,21 @@ $grid->model()
         'order_items.price as 售价',
         'order_items.amount as 数量',
 	DB::raw('(
-            SELECT GROUP_CONCAT(serial_num SEPARATOR ", ")
-            FROM serial_nums 
-            WHERE productSku_id = order_items.product_sku_id
-            AND deleted_at IS NOT NULL
-            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
-        ) as 序列号列表'),
+    SELECT GROUP_CONCAT(sn.serial_num SEPARATOR ", ")
+    FROM serial_nums sn
+    INNER JOIN product_skus ps ON sn.productSku_id = ps.id
+    WHERE ps.root_sku_id = (SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id)
+      AND sn.deleted_at IS NOT NULL
+      AND sn.deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
+) as 序列号列表'),
 	DB::raw('(
-            SELECT GROUP_CONCAT(deleted_at SEPARATOR ", ")
-            FROM serial_nums 
-            WHERE productSku_id = order_items.product_sku_id
-            AND deleted_at IS NOT NULL
-            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
-        ) as 出库时间'),
+    SELECT GROUP_CONCAT(sn.deleted_at SEPARATOR ", ")
+    FROM serial_nums sn
+    INNER JOIN product_skus ps ON sn.productSku_id = ps.id
+    WHERE ps.root_sku_id = (SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id)
+      AND sn.deleted_at IS NOT NULL
+      AND sn.deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
+) as 出库时间'),
 DB::raw("(
     SELECT COUNT(serial_num) 
     FROM serial_nums 
@@ -63,19 +65,18 @@ DB::raw("(
       AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
       AND productSku_id IN (
           SELECT id FROM product_skus 
-          WHERE COALESCE(master_sku_id, id) = (
-              SELECT COALESCE(master_sku_id, id) FROM product_skus WHERE id = order_items.product_sku_id
-          )
+          WHERE root_sku_id = ( SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id )
       )
 ) as 序列号数量"),
-        DB::raw('(
-            SELECT AVG(cost)
-            FROM serial_nums 
-            WHERE productSku_id = order_items.product_sku_id
-            AND deleted_at IS NOT NULL
-            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 DAY AND orders.paid_at + INTERVAL 1 DAY
-        ) as 成本价'),
-	
+	DB::raw('(
+    SELECT AVG(sn.cost)
+    FROM serial_nums sn
+    INNER JOIN product_skus ps ON sn.productSku_id = ps.id
+    WHERE ps.root_sku_id = (SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id)
+      AND sn.deleted_at IS NOT NULL
+      AND sn.deleted_at BETWEEN orders.paid_at - INTERVAL 1 DAY AND orders.paid_at + INTERVAL 1 DAY
+) as 成本价'),
+
     )
     ->orderBy('orders.id', 'desc');
     $grid->column('序号')->display(function ($id) { return "<a href='/admin/stocks/$id'>$id</a>"; });

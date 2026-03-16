@@ -1,0 +1,6 @@
+[2026-03-16 13:24:16] local.INFO: 序列号过滤器 SQL {"sql":"select * from `order_items` where exists (select * from `serial_nums` where `order_items`.`product_sku_id` = `serial_nums`.`productSku_id` and `serial_num` like ? and `deleted_at` is not null and deleted_at BETWEEN (SELECT paid_at FROM orders WHERE orders.id = order_items.order_id) - INTERVAL 1 HOUR AND (SELECT paid_at FROM orders WHERE orders.id = order_items.order_id) + INTERVAL 1 HOUR and productSku_id IN (
+                  SELECT id FROM product_skus 
+                  WHERE root_sku_id = (
+                      SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id
+                  )
+              ))","bindings":["%25212502%"]} 

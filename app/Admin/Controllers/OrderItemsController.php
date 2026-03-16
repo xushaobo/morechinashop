@@ -128,8 +128,28 @@ $grid->column('出库时间')->display(function () {
 	    $filter->between('order.paid_at','下单日期')->datetime();
             $filter->like('productSku.title','型号');
             $filter->like('order.remark','单位名称');
+		
+$filter->where(function ($query) {
+        $serialNum = $this->input;
 
-
+        $query->whereRaw('EXISTS (
+            SELECT 1 FROM serial_nums sn
+            WHERE sn.productSku_id IN (
+                SELECT id FROM product_skus
+                WHERE root_sku_id = (
+                    SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id
+                )
+            )
+            AND sn.serial_num LIKE ?
+            AND sn.deleted_at IS NOT NULL
+            AND sn.deleted_at BETWEEN (
+                SELECT paid_at FROM orders WHERE orders.id = order_items.order_id
+            ) - INTERVAL 1 HOUR
+            AND (
+                SELECT paid_at FROM orders WHERE orders.id = order_items.order_id
+            ) + INTERVAL 1 HOUR
+        )', ["%{$serialNum}%"]);
+    }, '序列号');
 
 
 

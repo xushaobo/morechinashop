@@ -91,7 +91,7 @@
           <div class="btn-group btn-group-toggle" data-toggle="buttons">
             @foreach($product->skus as $sku)
               <label class="btn sku-btn"  title="{{ $sku->title }}" >
-                <input type="radio" name="skus2" autocomplete="off" value="{{ $sku->total_stock }}"> {{ $sku->total_stock }}
+                <input type="radio" name="skus3" autocomplete="off" value="{{ $sku->total_stock }}"> {{ $sku->total_stock }}
               </label>
             @endforeach
             <label>件</label>

@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class ProductSku extends Model
 {
-    protected $fillable = ['title', 'description','price','stock_price','stock', 'master_sku_id'];
+    protected $fillable = ['title', 'description','price','stock_price','stock', 'master_sku_id','total_stock'];
 
     public function product()
     {
@@ -55,13 +55,7 @@ class ProductSku extends Model
     // 获取总库存 (主 SKU = 自身库存 + 所有子SKU库存; 子 SKU = 自身库存)
     public function  getTotalStockAttribute()
     {
-	if ($this->master_sku_id)
-	{
-	  //子SKU,总库存就是自身库存
-	  return $this->stock;
-	}
-	// 主SKU,自身库存 + 子SKU库存
-        return $this->stock + $this->childSkus()->sum('stock');
+        return self::where('root_sku_id',$this->root_sku_id)->sum('stock');
     }
     
 }

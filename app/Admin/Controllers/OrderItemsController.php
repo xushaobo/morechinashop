@@ -157,23 +157,25 @@ $filter->where(function ($query) {
         $value = request()->input('consistent'); // 从请求中获取值
         
         if ($value == 1) {
-            // 一致的情况
-            $query->whereRaw('COALESCE((
-                SELECT COUNT(serial_num) 
-                FROM serial_nums 
-                WHERE productSku_id = order_items.product_sku_id
-                AND deleted_at IS NOT NULL
-                AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
-            ), 0) = order_items.amount');
+            // 一致的情况:只考虑肖前SKU自身的序列号
+	    $subquery = "
+	    SELECT COUNT(serial_num)
+            FROM serial_nums
+            WHERE productSku_id = order_items.product_sku_id
+            AND deleted_at IS NOT NULL
+            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
+        ";
+	   $query->whereRaw("COALESCE(($subquery), 0) = order_items.amount");
         } elseif ($value == 2) {
-            // 不一致的情况
-            $query->whereRaw('COALESCE((
-                SELECT COUNT(serial_num) 
-                FROM serial_nums 
-                WHERE productSku_id = order_items.product_sku_id
-                AND deleted_at IS NOT NULL
-                AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
-            ), 0) != order_items.amount');
+            // 不一致的情况: 考虑整个组(包括子SKU)的序列号
+	    $subquery = "
+	    SELECT COUNT(serial_num)
+            FROM serial_nums
+            WHERE productSku_id = order_items.product_sku_id
+            AND deleted_at IS NOT NULL
+            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
+        ";
+          $query->whereRaw("COALESCE(($subquery), 0) != order_items.amount");
         }
     }, '数量一致性', 'consistent')->radio([
 	'all' => '显示所有',

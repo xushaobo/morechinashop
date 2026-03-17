@@ -3,6 +3,7 @@
 namespace App\Admin\Controllers;
 
 use App\Models\ProductSku;
+use App\Models\SerialNum;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form;
@@ -41,6 +42,26 @@ class ProductSkuController extends Controller
 	->totalRow(function ($amount) {
            return "<span class='text-danger text-bold'>总数量： {$amount} </span>";
 	});
+	  $grid->column('serial_count', '序列号数量')
+        ->display(function () {
+            return SerialNum::where('productSku_id', $this->id)
+                ->whereNull('deleted_at')
+                ->count();
+        });
+	$grid->column('diff', '库存与序列号差值')->display(function () {
+    $stock = $this->stock;
+    $serialCount = SerialNum::where('productSku_id', $this->id)
+        ->whereNull('deleted_at')
+        ->count();
+    $diff = $stock - $serialCount;
+    if ($diff > 0) {
+        return "<span style='color: orange;'>库存多 {$diff}</span>";
+    } elseif ($diff < 0) {
+        return "<span style='color: red;'>序列号多 " . abs($diff) . "</span>";
+    } else {
+        return "<span style='color: green;'>一致</span>";
+    }
+});
         $grid->column('ontheway', __('在途数量'))->sortable();
 
         // 移除新增按钮

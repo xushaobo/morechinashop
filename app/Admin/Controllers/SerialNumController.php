@@ -12,6 +12,8 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use App\Admin\Actions\Post\Restore;
+use App\Admin\Extensions\Tools\BatchUpdateSerialNum;
+use App\Admin\Extensions\Tools\BatchUpdateCost;
 
 class SerialNumController extends Controller
 {
@@ -98,6 +100,10 @@ class SerialNumController extends Controller
 			}
 			});
 
+			  $grid->batchActions(function ($batch) {
+			  $batch->add('批量修改序列号', new BatchUpdateSerialNum());
+			  $batch->add('批量修改成本', new BatchUpdateCost());
+			 });
 			return $grid;
 		}
 	

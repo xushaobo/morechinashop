@@ -49,10 +49,12 @@ class RepairsController extends AdminController
     0 => '进行中',
     1 => '已修复',
     2 => '申保中',
+    3 => '服务完成，转销售更进',
 ], '未知')->dot([
     0 => 'danger',
     1 => 'success',
-    2 => 'primary',
+    2 => 'warning',
+    3 => 'primary',
 ], 'warning')->sortable()->width(100);
 
 $grid->filter(function($filter){
@@ -69,6 +71,7 @@ $grid->filter(function($filter){
 				0 => '进行中',
 		      	        1 => '已修复',
 			        2 => '申保中',
+			        3 => '服务完成,转销售跟进',
 			]);
                         });
 
@@ -110,7 +113,7 @@ $grid->actions(function ($actions) {
         $form->text('bad_description', __('故障描述'));
 	$form->radio('ifunderwarry', '是否在保')->options(['1' => '是', '0'=> '否'])->default('0');
         $form->textarea('howtodo', __('处理办法'));
-	$form->radio('des_add', '维修状态')->options(['1' => '已修复', '0'=> '进行中','2'=> '申保中'])->default('0');
+	$form->radio('des_add', '维修状态')->options(['1' => '已修复', '0'=> '进行中','2'=> '申保中','3'=> '服务完成,转销售跟进'])->default('0');
 	$form->radio('ifreturntoBJ', '是否返厂')->options(['1' => '是', '0'=> '否'])->default('0');
         $form->text('mail_info', __('邮寄状态'));
         $form->textarea('howtodo_BJ', __('厂家处理办法'));

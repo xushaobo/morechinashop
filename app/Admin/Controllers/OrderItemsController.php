@@ -74,7 +74,7 @@ DB::raw("(
     INNER JOIN product_skus ps ON sn.productSku_id = ps.id
     WHERE ps.root_sku_id = (SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id)
       AND sn.deleted_at IS NOT NULL
-      AND sn.deleted_at BETWEEN orders.paid_at - INTERVAL 1 DAY AND orders.paid_at + INTERVAL 1 DAY
+      AND sn.deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
 ) as 成本价'),
 
     )

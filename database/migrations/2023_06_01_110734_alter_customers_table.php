@@ -29,9 +29,9 @@ class AlterCustomersTable extends Migration
     public function down()
     {
         Schema::table('customers', function (Blueprint $table) {
-		$table->drop_column('region'); //地区
-		$table->drop_column('city'); //地区
-		$table->drop_column('customer_type'); //地区
+		$table->dropColumn('region'); //地区
+		$table->dropColumn('city'); //地区
+		$table->dropColumn('customer_type'); //地区
         });
     }
 }

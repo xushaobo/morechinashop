@@ -60,4 +60,8 @@ Route::group([
     $router->post('repairs', 'RepairsController@store');
     $router->get('repairs/{id}/edit', 'RepairsController@edit');
     $router->put('repairs/{id}', 'RepairsController@update');
+
+    $router->post('api/batch/update/serial_num', 'ApiController@batchUpdateSerialNum')->name('admin.api.batch.update.serial_num');
+    $router->post('api/batch/update/cost', 'ApiController@batchUpdateCost')->name('admin.api.batch.update.cost');
+
 });

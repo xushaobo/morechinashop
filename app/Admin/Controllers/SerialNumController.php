@@ -45,7 +45,7 @@ class SerialNumController extends Controller
 		{
 			$grid = new Grid(new SerialNum);
 			// 避免N+1问题先查出数据
-                        $grid->model()->with(['productsku.product:title'])->orderBy('created_at','desc');
+                        $grid->model()->with(['productSku.product.category'])->orderBy('created_at','desc');
 			$grid->id('ID')->sortable();
 			$grid->column('productsku.product_id','所属产品id')->sortable();
 			//$grid->column('productsku.product.title','所属产品名称');			// 关联表数据
@@ -86,6 +86,26 @@ class SerialNumController extends Controller
 				$filter->like('productsku.id','ID号');
 				$filter->like('productsku.title','货号');
 				$filter->like('productsku.description','描述');
+				$filter->where(function ($query) {
+					$category = Category::find($this->input);
+					if (!$category) {
+						$query->whereRaw('0 = 1');
+						return;
+					}
+
+					$categoryIds = [$category->id];
+					if ($category->is_directory) {
+						$categoryIds = Category::query()
+							->where('id', $category->id)
+							->orWhere('path', 'like', '%-'.$category->id.'-%')
+							->pluck('id')
+							->all();
+					}
+
+					$query->whereHas('productSku.product', function ($query) use ($categoryIds) {
+						$query->whereIn('category_id', $categoryIds);
+					});
+				}, '类目', 'category_id')->select($this->categoryOptions());
 				$filter->like('serial_num','序列号');
 				$filter->like('cost','成本');
 				$filter->between('created_at','创建时间')->datetime();
@@ -107,6 +127,29 @@ class SerialNumController extends Controller
 			  $batch->add('批量修改出库时间', new BatchUpdateDeletedAt());
 			 });
 			return $grid;
+		}
+
+		protected function categoryOptions()
+		{
+			$categories = Category::query()
+				->orderBy('path')
+				->orderBy('id')
+				->get(['id', 'name', 'path']);
+			$categoryMap = $categories->keyBy('id');
+
+			return $categories->mapWithKeys(function (Category $category) use ($categoryMap) {
+				$name = collect($category->path_ids)
+					->map(function ($id) use ($categoryMap) {
+						$parent = $categoryMap->get((int) $id);
+
+						return $parent ? $parent->name : null;
+					})
+					->filter()
+					->push($category->name)
+					->implode(' - ');
+
+				return [$category->id => $name];
+			})->toArray();
 		}
 	
 		protected function form()

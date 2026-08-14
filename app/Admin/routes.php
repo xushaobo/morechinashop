@@ -63,5 +63,6 @@ Route::group([
 
     $router->post('api/batch/update/serial_num', 'ApiController@batchUpdateSerialNum')->name('admin.api.batch.update.serial_num');
     $router->post('api/batch/update/cost', 'ApiController@batchUpdateCost')->name('admin.api.batch.update.cost');
+    $router->post('api/batch/update/deleted_at', 'ApiController@batchUpdateDeletedAt')->name('admin.api.batch.update.deleted_at');
 
 });

@@ -29,10 +29,17 @@ class OrdersController extends Controller
 
     public function show(Order $order, Content $content)
     {
+        $order->load(['user', 'items.product', 'items.productSku']);
+
+        $selectedSerialNos = $this->selectedSerialNos($order);
+
         return $content
             ->header('查看订单')
             // body方法可以接受Laravel视图作为参数
-            ->body(view('admin.orders.show',['order' => $order]));
+            ->body(view('admin.orders.show', [
+                'order' => $order,
+                'selectedSerialNos' => $selectedSerialNos,
+            ]));
     }
     protected function grid()
     {
@@ -118,13 +125,7 @@ class OrdersController extends Controller
             'serial_no' => '发货序列号',
         ]);
 
-        $serialNos = collect(preg_split('/[\s,，;；]+/u', trim($data['serial_no'])))
-            ->map(function ($serialNo) {
-                return trim($serialNo);
-            })
-            ->filter()
-            ->unique()
-            ->values();
+        $serialNos = $this->normalizeSerialNos($data['serial_no']);
 
         if ($serialNos->isEmpty()) {
             throw new InvalidRequestException('请填写有效序列号');
@@ -147,7 +148,7 @@ class OrdersController extends Controller
         }
 
         $serialsByNo = SerialNum::withTrashed()
-            ->with('productSku')
+            ->with(['productSku', 'orderItem.order'])
             ->whereIn('serial_num', $serialNos->all())
             ->get()
             ->groupBy('serial_num');
@@ -159,6 +160,9 @@ class OrdersController extends Controller
                     return false;
                 }
                 if ($serial->order_id && (int) $serial->order_id !== (int) $order->id) {
+                    return false;
+                }
+                if ($serial->order_item_id && (!$serial->orderItem || (int) $serial->orderItem->order_id !== (int) $order->id)) {
                     return false;
                 }
 
@@ -204,9 +208,120 @@ class OrdersController extends Controller
         return redirect()->back();
     }
 
+    public function serialOptions(Order $order, Request $request)
+    {
+        $term = trim((string) $request->input('q', $request->input('term', '')));
+
+        if ($term === '') {
+            return response()->json(['results' => []]);
+        }
+
+        $order->load('items.productSku');
+        $rootIds = $order->items
+            ->filter(function ($item) {
+                return $item->productSku;
+            })
+            ->map(function ($item) {
+                return (int) $this->skuRootId($item->productSku);
+            })
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($rootIds)) {
+            return response()->json(['results' => []]);
+        }
+
+        $rootExpr = 'COALESCE(product_skus.root_sku_id, product_skus.master_sku_id, product_skus.id)';
+
+        $serials = DB::table('serial_nums as sn')
+            ->leftJoin('product_skus as product_skus', 'sn.productSku_id', '=', 'product_skus.id')
+            ->leftJoin('order_items as bound_item', 'sn.order_item_id', '=', 'bound_item.id')
+            ->select([
+                'sn.id',
+                'sn.serial_num',
+                'sn.order_id',
+                'sn.order_item_id',
+                'sn.deleted_at',
+                'sn.cost',
+                'product_skus.title as sku_title',
+                'product_skus.root_sku_id',
+                'bound_item.order_id as bound_item_order_id',
+            ])
+            ->whereIn(DB::raw($rootExpr), $rootIds)
+            ->where('sn.serial_num', 'like', $term . '%')
+            ->orderByRaw('CASE WHEN sn.order_id = ? OR bound_item.order_id = ? THEN 0 WHEN sn.order_id IS NULL AND bound_item.order_id IS NULL THEN 1 ELSE 2 END', [$order->id, $order->id])
+            ->orderBy('sn.serial_num')
+            ->orderBy('sn.id')
+            ->limit(50)
+            ->get();
+
+        $results = $serials->unique('serial_num')->take(20)->map(function ($serial) use ($order) {
+            $boundOrderId = $serial->order_id ?: $serial->bound_item_order_id;
+            $isBoundElsewhere = $boundOrderId && (int) $boundOrderId !== (int) $order->id;
+            $textParts = [
+                $serial->serial_num,
+                $serial->sku_title ?: ('SKU ' . $serial->root_sku_id),
+            ];
+
+            if ($boundOrderId) {
+                $textParts[] = $isBoundElsewhere ? ('已绑定订单' . $boundOrderId) : '当前订单';
+            } elseif ($serial->deleted_at) {
+                $textParts[] = '已出库未绑定';
+            } else {
+                $textParts[] = '库存中';
+            }
+
+            if ($serial->cost !== null && $serial->cost !== '') {
+                $textParts[] = '成本' . $serial->cost;
+            }
+
+            return [
+                'id' => $serial->serial_num,
+                'text' => implode(' - ', $textParts),
+                'disabled' => $isBoundElsewhere,
+            ];
+        })->values();
+
+        return response()->json(['results' => $results]);
+    }
+
     protected function skuRootId($sku)
     {
         return $sku->root_sku_id ?: ($sku->master_sku_id ?: $sku->id);
+    }
+
+    protected function normalizeSerialNos($serialInput)
+    {
+        $values = is_array($serialInput) ? $serialInput : [$serialInput];
+
+        return collect($values)
+            ->flatMap(function ($serialNo) {
+                return preg_split('/[\s,，、;；\/]+/u', trim((string) $serialNo));
+            })
+            ->map(function ($serialNo) {
+                return trim($serialNo);
+            })
+            ->filter()
+            ->unique()
+            ->values();
+    }
+
+    protected function selectedSerialNos(Order $order)
+    {
+        $linkedSerialNos = SerialNum::withTrashed()
+            ->where('order_id', $order->id)
+            ->whereNotNull('order_item_id')
+            ->orderBy('id')
+            ->pluck('serial_num')
+            ->all();
+
+        return $this->normalizeSerialNos($order->serial_data)
+            ->merge($linkedSerialNos)
+            ->filter()
+            ->unique()
+            ->values();
     }
     public function memo(Order $order,Request $request)
     {

@@ -53,7 +53,12 @@
             {{ csrf_field() }}
             <div class="form-group {{ $errors->has('serial_no') ? 'has-error' : '' }}">
               <label for="serial_no" class="control-label">发货序列号</label>
-              <input type="text" id="serial_no" name="serial_no" value="" class="form-control" placeholder="多个序列号用逗号或空格分隔">
+              <select id="serial_no" name="serial_no[]" class="form-control" multiple="multiple" style="width: 420px" data-placeholder="输入序列号搜索">
+                @foreach($selectedSerialNos as $serialNo)
+                  <option value="{{ $serialNo }}" selected>{{ $serialNo }}</option>
+                @endforeach
+              </select>
+              <input type="text" id="serial_no_plain" name="serial_no" value="{{ $selectedSerialNos->implode(', ') }}" class="form-control" style="width: 420px; display: none" disabled placeholder="多个序列号用逗号或空格分隔">
             </div>
             <button type="submit" class="btn btn-success" id="serial-btn">提交</button>
           </form>
@@ -183,6 +188,45 @@
 
 <script>
 $(document).ready(function() {
+  var $serialNo = $('#serial_no');
+  if ($.fn.select2) {
+    $serialNo.select2({
+      width: '420px',
+      placeholder: '输入序列号搜索',
+      tags: true,
+      minimumInputLength: 2,
+      tokenSeparators: [',', '，', '、', ';', '；', '/', ' '],
+      ajax: {
+        url: '{{ route('admin.orders.serial_options', [$order->id]) }}',
+        dataType: 'json',
+        delay: 250,
+        data: function(params) {
+          return {
+            q: params.term
+          };
+        },
+        processResults: function(data) {
+          return data;
+        },
+        cache: true
+      },
+      language: {
+        inputTooShort: function() {
+          return '至少输入2位序列号';
+        },
+        noResults: function() {
+          return '无可选序列号';
+        },
+        searching: function() {
+          return '搜索中...';
+        }
+      }
+    });
+  } else {
+    $serialNo.prop('disabled', true).hide();
+    $('#serial_no_plain').prop('disabled', false).show();
+  }
+
   // 同意 按钮的点击事件
   $('#btn-refund-agree').click(function() {
     // Laravel-Admin 使用的 SweetAlert 版本与我们在前台使用的版本不一样，因此参数也不太一样

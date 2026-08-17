@@ -40,6 +40,7 @@ Route::group([
     $router->get('stocks/{order}/edit', 'OrderItemsController@edit')->name('admin.orderItems.edit');
     $router->get('stocks/{order}', 'OrdersController@show')->name('admin.orders.show');
     $router->get('orders/{order}', 'OrdersController@show')->name('admin.orders.show');
+    $router->get('orders/{order}/serial-options', 'OrdersController@serialOptions')->name('admin.orders.serial_options');
     $router->post('orders/{order}/ship', 'OrdersController@ship')->name('admin.orders.ship');
     $router->post('orders/{order}/serial', 'OrdersController@serial')->name('admin.orders.serial');
     $router->post('orders/{order}/memo', 'OrdersController@memo')->name('admin.orders.memo');

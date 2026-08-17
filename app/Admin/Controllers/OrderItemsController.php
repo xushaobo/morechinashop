@@ -31,9 +31,39 @@ class OrderItemsController extends AdminController
 	// 全部关闭
 //	$grid->disableActions();
 	 // 使用LEFT JOIN查询
+$linkedSerials = DB::raw('(
+    SELECT order_item_id,
+           GROUP_CONCAT(serial_num ORDER BY id SEPARATOR ", ") as serial_nums,
+           GROUP_CONCAT(deleted_at ORDER BY id SEPARATOR ", ") as outbound_times,
+           COUNT(id) as serial_count,
+           AVG(cost) as avg_cost
+    FROM serial_nums
+    WHERE order_item_id IS NOT NULL
+      AND deleted_at IS NOT NULL
+    GROUP BY order_item_id
+) as linked_serial_nums');
+
+$fallbackSerials = DB::raw('(
+    SELECT productSku_id,
+           deleted_at,
+           GROUP_CONCAT(serial_num ORDER BY id SEPARATOR ", ") as serial_nums,
+           GROUP_CONCAT(deleted_at ORDER BY id SEPARATOR ", ") as outbound_times,
+           COUNT(id) as serial_count,
+           AVG(cost) as avg_cost
+    FROM serial_nums
+    WHERE order_item_id IS NULL
+      AND deleted_at IS NOT NULL
+    GROUP BY productSku_id, deleted_at
+) as fallback_serial_nums');
+
 $grid->model()
     ->leftJoin('orders', 'order_items.order_id', '=', 'orders.id')
     ->leftJoin('product_skus', 'order_items.product_sku_id', '=', 'product_skus.id')
+    ->leftJoin($linkedSerials, 'linked_serial_nums.order_item_id', '=', 'order_items.id')
+    ->leftJoin($fallbackSerials, function ($join) {
+        $join->on('fallback_serial_nums.productSku_id', '=', 'order_items.product_sku_id')
+            ->on('fallback_serial_nums.deleted_at', '=', 'orders.paid_at');
+    })
     ->select(
         'order_items.id',
         'order_items.order_id as 序号',
@@ -42,40 +72,10 @@ $grid->model()
         'product_skus.title as 货号/型号',
         'order_items.price as 售价',
         'order_items.amount as 数量',
-	DB::raw('(
-    SELECT GROUP_CONCAT(sn.serial_num SEPARATOR ", ")
-    FROM serial_nums sn
-    INNER JOIN product_skus ps ON sn.productSku_id = ps.id
-    WHERE ps.root_sku_id = (SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id)
-      AND sn.deleted_at IS NOT NULL
-      AND sn.deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
-) as 序列号列表'),
-	DB::raw('(
-    SELECT GROUP_CONCAT(sn.deleted_at SEPARATOR ", ")
-    FROM serial_nums sn
-    INNER JOIN product_skus ps ON sn.productSku_id = ps.id
-    WHERE ps.root_sku_id = (SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id)
-      AND sn.deleted_at IS NOT NULL
-      AND sn.deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
-) as 出库时间'),
-DB::raw("(
-    SELECT COUNT(serial_num) 
-    FROM serial_nums 
-    WHERE deleted_at IS NOT NULL 
-      AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
-      AND productSku_id IN (
-          SELECT id FROM product_skus 
-          WHERE root_sku_id = ( SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id )
-      )
-) as 序列号数量"),
-	DB::raw('(
-    SELECT AVG(sn.cost)
-    FROM serial_nums sn
-    INNER JOIN product_skus ps ON sn.productSku_id = ps.id
-    WHERE ps.root_sku_id = (SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id)
-      AND sn.deleted_at IS NOT NULL
-      AND sn.deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR 
-) as 成本价'),
+	DB::raw('COALESCE(linked_serial_nums.serial_nums, fallback_serial_nums.serial_nums) as 序列号列表'),
+	DB::raw('COALESCE(linked_serial_nums.outbound_times, fallback_serial_nums.outbound_times) as 出库时间'),
+	DB::raw('COALESCE(linked_serial_nums.serial_count, fallback_serial_nums.serial_count, 0) as 序列号数量'),
+	DB::raw('COALESCE(linked_serial_nums.avg_cost, fallback_serial_nums.avg_cost) as 成本价'),
 
     )
     ->orderBy('orders.id', 'desc');
@@ -129,53 +129,40 @@ $grid->column('出库时间')->display(function () {
             $filter->like('productSku.title','型号');
             $filter->like('order.remark','单位名称');
 		
-$filter->where(function ($query) {
-        $serialNum = $this->input;
-
-        $query->whereRaw('EXISTS (
-            SELECT 1 FROM serial_nums sn
-            WHERE sn.productSku_id IN (
-                SELECT id FROM product_skus
-                WHERE root_sku_id = (
-                    SELECT root_sku_id FROM product_skus WHERE id = order_items.product_sku_id
-                )
-            )
-            AND sn.serial_num LIKE ?
-            AND sn.deleted_at IS NOT NULL
-            AND sn.deleted_at BETWEEN (
-                SELECT paid_at FROM orders WHERE orders.id = order_items.order_id
-            ) - INTERVAL 1 HOUR
-            AND (
-                SELECT paid_at FROM orders WHERE orders.id = order_items.order_id
-            ) + INTERVAL 1 HOUR
-        )', ["%{$serialNum}%"]);
-    }, '序列号');
-
-
+	    $serialCountSql = 'CASE
+            WHEN COALESCE((SELECT COUNT(id) FROM serial_nums WHERE order_item_id = order_items.id AND deleted_at IS NOT NULL), 0) > 0
+            THEN (SELECT COUNT(id) FROM serial_nums WHERE order_item_id = order_items.id AND deleted_at IS NOT NULL)
+            ELSE COALESCE((SELECT COUNT(id) FROM serial_nums WHERE order_item_id IS NULL AND productSku_id = order_items.product_sku_id AND deleted_at = orders.paid_at), 0)
+        END';
 
 	$filter->where(function ($query) {
-        $value = request()->input('consistent'); // 从请求中获取值
-        
+	        $serialNum = $this->input;
+
+	        $query->whereRaw('(EXISTS (
+            SELECT 1 FROM serial_nums sn
+            WHERE sn.order_item_id = order_items.id
+            AND sn.serial_num LIKE ?
+            AND sn.deleted_at IS NOT NULL
+	        ) OR EXISTS (
+            SELECT 1 FROM serial_nums sn
+            WHERE sn.order_item_id IS NULL
+            AND sn.productSku_id = order_items.product_sku_id
+            AND sn.deleted_at = orders.paid_at
+            AND sn.serial_num LIKE ?
+	        ))', ["%{$serialNum}%", "%{$serialNum}%"]);
+	    }, '序列号');
+
+
+
+	$filter->where(function ($query) use ($serialCountSql) {
+        $value = $this->input;
+
         if ($value == 1) {
-            // 一致的情况:只考虑肖前SKU自身的序列号
-	    $subquery = "
-	    SELECT COUNT(serial_num)
-            FROM serial_nums
-            WHERE productSku_id = order_items.product_sku_id
-            AND deleted_at IS NOT NULL
-            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
-        ";
-	   $query->whereRaw("COALESCE(($subquery), 0) = order_items.amount");
+            // 一致的情况：优先精确订单明细关联，其次兼容旧的精确SKU出库时间。
+	   $query->whereRaw("{$serialCountSql} = order_items.amount");
         } elseif ($value == 2) {
-            // 不一致的情况: 考虑整个组(包括子SKU)的序列号
-	    $subquery = "
-	    SELECT COUNT(serial_num)
-            FROM serial_nums
-            WHERE productSku_id = order_items.product_sku_id
-            AND deleted_at IS NOT NULL
-            AND deleted_at BETWEEN orders.paid_at - INTERVAL 1 HOUR AND orders.paid_at + INTERVAL 1 HOUR
-        ";
-          $query->whereRaw("COALESCE(($subquery), 0) != order_items.amount");
+            // 不一致的情况：优先精确订单明细关联，其次兼容旧的精确SKU出库时间。
+          $query->whereRaw("{$serialCountSql} != order_items.amount");
         }
     }, '数量一致性', 'consistent')->radio([
 	'all' => '显示所有',

@@ -53,7 +53,7 @@
             {{ csrf_field() }}
             <div class="form-group {{ $errors->has('serial_no') ? 'has-error' : '' }}">
               <label for="serial_no" class="control-label">发货序列号</label>
-              <input type="text" id="serial_no" name="serial_no" value="" class="form-control" placeholder="输入序列号">
+              <input type="text" id="serial_no" name="serial_no" value="" class="form-control" placeholder="多个序列号用逗号或空格分隔">
             </div>
             <button type="submit" class="btn btn-success" id="serial-btn">提交</button>
           </form>

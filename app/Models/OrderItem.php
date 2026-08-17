@@ -26,6 +26,6 @@ class OrderItem extends Model
     }
     public function serialNums()
     {
-         return $this->hasMany(SerialNum::class, 'productSku_id', 'product_sku_id');
+         return $this->hasMany(SerialNum::class, 'order_item_id');
     }
 }

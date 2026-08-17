@@ -3,11 +3,13 @@
 namespace App\Admin\Controllers;
 
 use App\Models\Order;
+use App\Models\SerialNum;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Exceptions\InvalidRequestException;
 use App\Http\Requests\Admin\HandlePayConfirmRequest;
 // 处理空字符串
@@ -113,14 +115,98 @@ class OrdersController extends Controller
         $data = $this->validate($request, [
             'serial_no' => ['required'],
         ],[], [
-            'seria_no' => '发货序列号',
-        ]);
-        //将订单发货状态改为已发货，并存入物流信息
-        $order->update([
-            'serial_data' => $data,
+            'serial_no' => '发货序列号',
         ]);
 
+        $serialNos = collect(preg_split('/[\s,，;；]+/u', trim($data['serial_no'])))
+            ->map(function ($serialNo) {
+                return trim($serialNo);
+            })
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($serialNos->isEmpty()) {
+            throw new InvalidRequestException('请填写有效序列号');
+        }
+
+        $order->load('items.productSku');
+        $orderItems = $order->items->filter(function ($item) {
+            return $item->productSku;
+        });
+        if ($orderItems->isEmpty()) {
+            throw new InvalidRequestException('订单没有可绑定序列号的商品');
+        }
+
+        $orderItemsByRoot = $orderItems->groupBy(function ($item) {
+            return (string) $this->skuRootId($item->productSku);
+        });
+        $remainingByItem = [];
+        foreach ($orderItems as $item) {
+            $remainingByItem[$item->id] = (int) $item->amount;
+        }
+
+        $serialsByNo = SerialNum::withTrashed()
+            ->with('productSku')
+            ->whereIn('serial_num', $serialNos->all())
+            ->get()
+            ->groupBy('serial_num');
+
+        $assignments = [];
+        foreach ($serialNos as $serialNo) {
+            $serial = $serialsByNo->get($serialNo, collect())->first(function ($serial) use ($order, $orderItemsByRoot) {
+                if (!$serial->productSku) {
+                    return false;
+                }
+                if ($serial->order_id && (int) $serial->order_id !== (int) $order->id) {
+                    return false;
+                }
+
+                return $orderItemsByRoot->has((string) $this->skuRootId($serial->productSku));
+            });
+
+            if (!$serial) {
+                throw new InvalidRequestException("序列号 {$serialNo} 不存在、已绑定其它订单或不属于该订单商品");
+            }
+
+            $rootId = (string) $this->skuRootId($serial->productSku);
+            $item = $orderItemsByRoot->get($rootId)->first(function ($item) use (&$remainingByItem) {
+                return $remainingByItem[$item->id] > 0;
+            });
+            if (!$item) {
+                throw new InvalidRequestException("序列号数量超过订单商品数量：{$serialNo}");
+            }
+
+            $assignments[] = compact('serial', 'item');
+            $remainingByItem[$item->id]--;
+        }
+
+        DB::transaction(function () use ($order, $serialNos, $assignments) {
+            SerialNum::withTrashed()
+                ->where('order_id', $order->id)
+                ->update(['order_id' => null, 'order_item_id' => null]);
+
+            foreach ($assignments as $assignment) {
+                $serial = $assignment['serial'];
+                $serial->order_id = $order->id;
+                $serial->order_item_id = $assignment['item']->id;
+                if (!$serial->deleted_at) {
+                    $serial->deleted_at = $order->paid_at ?: now();
+                }
+                $serial->save();
+            }
+
+            $order->update([
+                'serial_data' => ['serial_no' => $serialNos->implode(', ')],
+            ]);
+        });
+
         return redirect()->back();
+    }
+
+    protected function skuRootId($sku)
+    {
+        return $sku->root_sku_id ?: ($sku->master_sku_id ?: $sku->id);
     }
     public function memo(Order $order,Request $request)
     {

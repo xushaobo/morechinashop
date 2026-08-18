@@ -255,10 +255,15 @@ class OrdersController extends Controller
             })
             ->orderBy('sn.serial_num')
             ->orderBy('sn.id')
-            ->limit(100)
             ->get();
 
-        $results = $serials->unique('serial_num')->take(20)->map(function ($serial) {
+        $results = $serials
+            ->sort(function ($left, $right) {
+                return $this->compareSerialAge($left, $right);
+            })
+            ->unique('serial_num')
+            ->take(20)
+            ->map(function ($serial) {
             $textParts = [
                 $serial->serial_num,
                 $serial->sku_title ?: ('SKU ' . $serial->root_sku_id),
@@ -307,11 +312,137 @@ class OrdersController extends Controller
             ->pluck('serial_num')
             ->all();
 
-        return $this->normalizeSerialNos($order->serial_data)
+        $selectedSerialNos = $this->normalizeSerialNos($order->serial_data)
             ->merge($linkedSerialNos)
             ->filter()
             ->unique()
             ->values();
+
+        if ($selectedSerialNos->count() > 0) {
+            return $selectedSerialNos;
+        }
+
+        if ($order->ship_status !== Order::SHIP_STATUS_PENDING) {
+            return collect();
+        }
+
+        return $this->defaultOldestSerialNos($order);
+    }
+
+    protected function defaultOldestSerialNos(Order $order)
+    {
+        $requirements = $order->items
+            ->filter(function ($item) {
+                return $item->productSku && (int) $item->amount > 0;
+            })
+            ->groupBy(function ($item) {
+                return (string) $this->skuRootId($item->productSku);
+            })
+            ->map(function ($items) {
+                return $items->sum(function ($item) {
+                    return (int) $item->amount;
+                });
+            })
+            ->filter(function ($amount, $rootId) {
+                return (int) $rootId > 0 && (int) $amount > 0;
+            });
+
+        if ($requirements->isEmpty()) {
+            return collect();
+        }
+
+        $rootExpr = 'COALESCE(product_skus.root_sku_id, product_skus.master_sku_id, product_skus.id)';
+        $serialsByRoot = DB::table('serial_nums as sn')
+            ->leftJoin('product_skus as product_skus', 'sn.productSku_id', '=', 'product_skus.id')
+            ->select([
+                'sn.id',
+                'sn.serial_num',
+                DB::raw($rootExpr . ' as root_id'),
+            ])
+            ->whereIn(DB::raw($rootExpr), $requirements->keys()->all())
+            ->whereNull('sn.deleted_at')
+            ->whereNull('sn.order_id')
+            ->whereNull('sn.order_item_id')
+            ->orderBy('sn.serial_num')
+            ->orderBy('sn.id')
+            ->get()
+            ->groupBy(function ($serial) {
+                return (string) $serial->root_id;
+            });
+
+        $serialNos = collect();
+        foreach ($requirements as $rootId => $amount) {
+            $serialNos = $serialNos->merge(
+                $serialsByRoot->get((string) $rootId, collect())
+                    ->sort(function ($left, $right) {
+                        return $this->compareSerialAge($left, $right);
+                    })
+                    ->unique('serial_num')
+                    ->take((int) $amount)
+                    ->pluck('serial_num')
+            );
+        }
+
+        return $serialNos->values();
+    }
+
+    protected function compareSerialAge($left, $right)
+    {
+        $leftKey = $this->serialAgeKey($left->serial_num);
+        $rightKey = $this->serialAgeKey($right->serial_num);
+
+        if ($leftKey !== $rightKey) {
+            return $leftKey < $rightKey ? -1 : 1;
+        }
+
+        $serialCompare = strcmp($left->serial_num, $right->serial_num);
+        if ($serialCompare !== 0) {
+            return $serialCompare;
+        }
+
+        $leftId = isset($left->id) ? (int) $left->id : 0;
+        $rightId = isset($right->id) ? (int) $right->id : 0;
+
+        if ($leftId === $rightId) {
+            return 0;
+        }
+
+        return $leftId < $rightId ? -1 : 1;
+    }
+
+    protected function serialAgeKey($serialNo)
+    {
+        $serialNo = trim((string) $serialNo);
+
+        if (preg_match('/^[A-Za-z]*(20[0-9]{2})([0-9]{2})([0-9]{2})/', $serialNo, $matches)) {
+            $year = (int) $matches[1];
+            $month = (int) $matches[2];
+            $day = (int) $matches[3];
+
+            if (checkdate($month, $day, $year)) {
+                return (int) date('oW', strtotime(sprintf('%04d-%02d-%02d', $year, $month, $day)));
+            }
+        }
+
+        // Some suppliers encode the month as A-L after a two-digit year,
+        // for example 26A... means January 2026 and 24D... means April 2024.
+        if (preg_match('/^[A-Za-z]*([0-9]{2})([A-L])/', $serialNo, $matches)) {
+            $year = 2000 + (int) $matches[1];
+            $month = ord($matches[2]) - ord('A') + 1;
+
+            return ($year * 100) + $month;
+        }
+
+        if (preg_match('/^[A-Za-z]*([0-9]{2})([0-9]{2})/', $serialNo, $matches)) {
+            $year = 2000 + (int) $matches[1];
+            $week = (int) $matches[2];
+
+            if ($week >= 1 && $week <= 53) {
+                return ($year * 100) + $week;
+            }
+        }
+
+        return PHP_INT_MAX;
     }
     public function memo(Order $order,Request $request)
     {

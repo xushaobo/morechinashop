@@ -234,44 +234,35 @@ class OrdersController extends Controller
         }
 
         $rootExpr = 'COALESCE(product_skus.root_sku_id, product_skus.master_sku_id, product_skus.id)';
+        $searchRegex = '^[[:alpha:]]*' . preg_quote($term, '/');
 
         $serials = DB::table('serial_nums as sn')
             ->leftJoin('product_skus as product_skus', 'sn.productSku_id', '=', 'product_skus.id')
-            ->leftJoin('order_items as bound_item', 'sn.order_item_id', '=', 'bound_item.id')
             ->select([
                 'sn.id',
                 'sn.serial_num',
-                'sn.order_id',
-                'sn.order_item_id',
-                'sn.deleted_at',
                 'sn.cost',
                 'product_skus.title as sku_title',
                 'product_skus.root_sku_id',
-                'bound_item.order_id as bound_item_order_id',
             ])
             ->whereIn(DB::raw($rootExpr), $rootIds)
-            ->where('sn.serial_num', 'like', $term . '%')
-            ->orderByRaw('CASE WHEN sn.order_id = ? OR bound_item.order_id = ? THEN 0 WHEN sn.order_id IS NULL AND bound_item.order_id IS NULL THEN 1 ELSE 2 END', [$order->id, $order->id])
+            ->whereNull('sn.deleted_at')
+            ->whereNull('sn.order_id')
+            ->whereNull('sn.order_item_id')
+            ->where(function ($query) use ($term, $searchRegex) {
+                $query->where('sn.serial_num', 'like', $term . '%')
+                    ->orWhereRaw('sn.serial_num REGEXP ?', [$searchRegex]);
+            })
             ->orderBy('sn.serial_num')
             ->orderBy('sn.id')
-            ->limit(50)
+            ->limit(100)
             ->get();
 
-        $results = $serials->unique('serial_num')->take(20)->map(function ($serial) use ($order) {
-            $boundOrderId = $serial->order_id ?: $serial->bound_item_order_id;
-            $isBoundElsewhere = $boundOrderId && (int) $boundOrderId !== (int) $order->id;
+        $results = $serials->unique('serial_num')->take(20)->map(function ($serial) {
             $textParts = [
                 $serial->serial_num,
                 $serial->sku_title ?: ('SKU ' . $serial->root_sku_id),
             ];
-
-            if ($boundOrderId) {
-                $textParts[] = $isBoundElsewhere ? ('已绑定订单' . $boundOrderId) : '当前订单';
-            } elseif ($serial->deleted_at) {
-                $textParts[] = '已出库未绑定';
-            } else {
-                $textParts[] = '库存中';
-            }
 
             if ($serial->cost !== null && $serial->cost !== '') {
                 $textParts[] = '成本' . $serial->cost;
@@ -280,7 +271,6 @@ class OrdersController extends Controller
             return [
                 'id' => $serial->serial_num,
                 'text' => implode(' - ', $textParts),
-                'disabled' => $isBoundElsewhere,
             ];
         })->values();
 

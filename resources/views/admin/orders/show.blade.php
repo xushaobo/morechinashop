@@ -54,8 +54,8 @@
             <div class="form-group {{ $errors->has('serial_no') ? 'has-error' : '' }}">
               <label for="serial_no" class="control-label">发货序列号</label>
               <select id="serial_no" name="serial_no[]" class="form-control" multiple="multiple" style="width: 420px" data-placeholder="输入序列号搜索">
-                @foreach($selectedSerialNos as $serialNo)
-                  <option value="{{ $serialNo }}" selected>{{ $serialNo }}</option>
+                @foreach($selectedSerialOptions as $serialOption)
+                  <option value="{{ $serialOption['value'] }}" selected>{{ $serialOption['text'] }}</option>
                 @endforeach
               </select>
               <input type="text" id="serial_no_plain" name="serial_no" value="{{ $selectedSerialNos->implode(', ') }}" class="form-control" style="width: 420px; display: none" disabled placeholder="多个序列号用逗号或空格分隔">

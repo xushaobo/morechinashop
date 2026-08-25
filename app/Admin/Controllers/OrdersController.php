@@ -39,6 +39,7 @@ class OrdersController extends Controller
             ->body(view('admin.orders.show', [
                 'order' => $order,
                 'selectedSerialNos' => $selectedSerialNos,
+                'selectedSerialOptions' => $this->selectedSerialOptions($order, $selectedSerialNos),
             ]));
     }
     protected function grid()
@@ -99,6 +100,8 @@ class OrdersController extends Controller
             throw new InvalidRequestException('订单已发货');
         }
 
+        $this->syncSerialDataLinks($order);
+
         $data = $this->validate($request, [
             'express_company' => ['required'],
             'express_no' => ['required'],
@@ -125,12 +128,33 @@ class OrdersController extends Controller
             'serial_no' => '发货序列号',
         ]);
 
-        $serialNos = $this->normalizeSerialNos($data['serial_no']);
+        $serialNos = $this->selectedSerialRefs($order)
+            ->merge($this->normalizeSerialNos($data['serial_no']))
+            ->unique()
+            ->values();
 
         if ($serialNos->isEmpty()) {
             throw new InvalidRequestException('请填写有效序列号');
         }
 
+        $this->assignSerialNos($order, $serialNos);
+
+        return redirect()->back();
+    }
+
+    protected function syncSerialDataLinks(Order $order)
+    {
+        $serialNos = $this->selectedSerialRefs($order);
+
+        if ($serialNos->isEmpty()) {
+            return;
+        }
+
+        $this->assignSerialNos($order, $serialNos);
+    }
+
+    protected function assignSerialNos(Order $order, $serialNos)
+    {
         $order->load('items.productSku');
         $orderItems = $order->items->filter(function ($item) {
             return $item->productSku;
@@ -147,15 +171,49 @@ class OrdersController extends Controller
             $remainingByItem[$item->id] = (int) $item->amount;
         }
 
-        $serialsByNo = SerialNum::withTrashed()
+        $serialIds = $serialNos
+            ->filter(function ($serialNo) {
+                return preg_match('/^sn:[0-9]+$/', (string) $serialNo);
+            })
+            ->map(function ($serialNo) {
+                return (int) substr((string) $serialNo, 3);
+            })
+            ->values();
+        $plainSerialNos = $serialNos
+            ->reject(function ($serialNo) {
+                return preg_match('/^sn:[0-9]+$/', (string) $serialNo);
+            })
+            ->values();
+
+        $serials = SerialNum::withTrashed()
             ->with(['productSku', 'orderItem.order'])
-            ->whereIn('serial_num', $serialNos->all())
-            ->get()
-            ->groupBy('serial_num');
+            ->where(function ($query) use ($serialIds, $plainSerialNos) {
+                if ($serialIds->isNotEmpty()) {
+                    $query->whereIn('id', $serialIds->all());
+                }
+                if ($plainSerialNos->isNotEmpty()) {
+                    $method = $serialIds->isNotEmpty() ? 'orWhereIn' : 'whereIn';
+                    $query->{$method}('serial_num', $plainSerialNos->all());
+                }
+            })
+            ->get();
+        $serialsByNo = $serials->groupBy('serial_num');
+        $serialsById = $serials->keyBy('id');
+        $usedSerialIds = [];
 
         $assignments = [];
         foreach ($serialNos as $serialNo) {
-            $serial = $serialsByNo->get($serialNo, collect())->first(function ($serial) use ($order, $orderItemsByRoot) {
+            $requestedSerialId = preg_match('/^sn:[0-9]+$/', (string) $serialNo)
+                ? (int) substr((string) $serialNo, 3)
+                : null;
+            $candidateSerials = $requestedSerialId
+                ? collect([$serialsById->get($requestedSerialId)])->filter()
+                : $serialsByNo->get($serialNo, collect());
+
+            $serial = $candidateSerials->first(function ($serial) use ($order, $orderItemsByRoot, &$usedSerialIds) {
+                if (in_array((int) $serial->id, $usedSerialIds, true)) {
+                    return false;
+                }
                 if (!$serial->productSku) {
                     return false;
                 }
@@ -172,6 +230,7 @@ class OrdersController extends Controller
             if (!$serial) {
                 throw new InvalidRequestException("序列号 {$serialNo} 不存在、已绑定其它订单或不属于该订单商品");
             }
+            $usedSerialIds[] = (int) $serial->id;
 
             $rootId = (string) $this->skuRootId($serial->productSku);
             $item = $orderItemsByRoot->get($rootId)->first(function ($item) use (&$remainingByItem) {
@@ -192,20 +251,23 @@ class OrdersController extends Controller
 
             foreach ($assignments as $assignment) {
                 $serial = $assignment['serial'];
-                $serial->order_id = $order->id;
-                $serial->order_item_id = $assignment['item']->id;
-                if (!$serial->deleted_at) {
-                    $serial->deleted_at = $order->paid_at ?: now();
-                }
-                $serial->save();
+                SerialNum::withTrashed()
+                    ->where('id', $serial->id)
+                    ->update([
+                        'order_id' => $order->id,
+                        'order_item_id' => $assignment['item']->id,
+                        'deleted_at' => $serial->deleted_at ?: ($order->paid_at ?: now()),
+                    ]);
             }
 
             $order->update([
-                'serial_data' => ['serial_no' => $serialNos->implode(', ')],
+                'serial_data' => [
+                    'serial_no' => collect($assignments)->map(function ($assignment) {
+                        return $assignment['serial']->serial_num;
+                    })->implode(', '),
+                ],
             ]);
         });
-
-        return redirect()->back();
     }
 
     public function serialOptions(Order $order, Request $request)
@@ -274,7 +336,7 @@ class OrdersController extends Controller
             }
 
             return [
-                'id' => $serial->serial_num,
+                'id' => 'sn:' . $serial->id,
                 'text' => implode(' - ', $textParts),
             ];
         })->values();
@@ -301,6 +363,58 @@ class OrdersController extends Controller
             ->filter()
             ->unique()
             ->values();
+    }
+
+    protected function selectedSerialRefs(Order $order)
+    {
+        $linkedSerials = SerialNum::withTrashed()
+            ->where('order_id', $order->id)
+            ->whereNotNull('order_item_id')
+            ->orderBy('id')
+            ->get(['id', 'serial_num']);
+        $linkedSerialNos = $linkedSerials->pluck('serial_num');
+        $serialDataNos = $this->normalizeSerialNos($order->serial_data)
+            ->reject(function ($serialNo) use ($linkedSerialNos) {
+                return $linkedSerialNos->contains($serialNo);
+            });
+
+        return collect($linkedSerials
+            ->map(function ($serial) {
+                return 'sn:' . $serial->id;
+            })
+            ->all())
+            ->merge($serialDataNos)
+            ->values();
+    }
+
+    protected function selectedSerialOptions(Order $order, $selectedSerialNos)
+    {
+        $linkedOptions = SerialNum::withTrashed()
+            ->where('order_id', $order->id)
+            ->whereNotNull('order_item_id')
+            ->orderBy('id')
+            ->get(['id', 'serial_num'])
+            ->map(function ($serial) {
+                return [
+                    'value' => 'sn:' . $serial->id,
+                    'text' => $serial->serial_num,
+                    'serial_num' => $serial->serial_num,
+                ];
+            });
+        $linkedSerialNos = $linkedOptions->pluck('serial_num');
+        $fallbackOptions = collect($selectedSerialNos)
+            ->reject(function ($serialNo) use ($linkedSerialNos) {
+                return $linkedSerialNos->contains($serialNo);
+            })
+            ->map(function ($serialNo) {
+                return [
+                    'value' => $serialNo,
+                    'text' => $serialNo,
+                    'serial_num' => $serialNo,
+                ];
+            });
+
+        return collect($linkedOptions->all())->merge($fallbackOptions)->values();
     }
 
     protected function selectedSerialNos(Order $order)

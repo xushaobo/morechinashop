@@ -193,7 +193,7 @@ $(document).ready(function() {
     $serialNo.select2({
       width: '420px',
       placeholder: '输入序列号搜索',
-      minimumInputLength: 2,
+      minimumInputLength: 0,
       ajax: {
         url: '{{ route('admin.orders.serial_options', [$order->id]) }}',
         dataType: 'json',

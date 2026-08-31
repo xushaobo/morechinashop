@@ -15,6 +15,8 @@ use App\Admin\Actions\Post\Restore;
 use App\Admin\Extensions\Tools\BatchUpdateSerialNum;
 use App\Admin\Extensions\Tools\BatchUpdateCost;
 use App\Admin\Extensions\Tools\BatchUpdateDeletedAt;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SerialNumController extends Controller
 {
@@ -34,12 +36,105 @@ class SerialNumController extends Controller
 		  ->body($this->form()->edit($id));
 	}
 
-	public function create(Content $content)
-	{
-		return $content
-		 ->header('录入到货产品序列号')
-		 ->body($this->form());
-	}
+		public function create(Content $content)
+		{
+			return $content
+			 ->header('录入到货产品序列号')
+			 ->body($this->form());
+		}
+
+		public function batchCreate(Content $content)
+		{
+			return $content
+			 ->header('批量录入到货产品序列号')
+			 ->body(view('admin.serial_nums.batch_create', [
+				'skuOptions' => $this->skuOptions(),
+			 ]));
+		}
+
+		public function batchStore(Request $request)
+		{
+			$data = $this->validate($request, [
+				'productSku_id' => ['required', 'integer', 'exists:product_skus,id'],
+				'ship_num' => ['required', 'string'],
+				'cost' => ['required'],
+				'created_at' => ['required', 'date'],
+				'quantity' => ['required', 'integer', 'min:1'],
+				'serial_nums' => ['required', 'string'],
+			], [], [
+				'productSku_id' => '商品ID',
+				'ship_num' => '到货批次号',
+				'cost' => '成本',
+				'created_at' => '到货日期',
+				'quantity' => '数量',
+				'serial_nums' => '序列号',
+			]);
+
+			$inputSerialNums = $this->normalizeBatchSerialNums($data['serial_nums']);
+
+			if ($inputSerialNums->isEmpty()) {
+				return redirect()->back()->withInput()->withErrors(['serial_nums' => '请填写有效序列号']);
+			}
+
+			if ($inputSerialNums->count() === 1) {
+				$serialNums = collect(array_fill(0, (int) $data['quantity'], $inputSerialNums->first()));
+			} else {
+				if ($inputSerialNums->count() !== (int) $data['quantity']) {
+					return redirect()->back()->withInput()->withErrors([
+						'serial_nums' => '填写多个序列号时，序列号数量必须等于数量字段',
+					]);
+				}
+
+				$serialNums = $inputSerialNums;
+			}
+
+			$duplicatedInput = $inputSerialNums->countBy()
+				->filter(function ($count) {
+					return $count > 1;
+				})
+				->keys()
+				->values();
+			if ($duplicatedInput->isNotEmpty()) {
+				return redirect()->back()->withInput()->withErrors([
+					'serial_nums' => '本次输入有重复序列号：'.$duplicatedInput->implode(', '),
+				]);
+			}
+
+			$existingSerialNums = SerialNum::withTrashed()
+				->whereIn('serial_num', $inputSerialNums->all())
+				->pluck('serial_num')
+				->unique()
+				->values();
+			if ($existingSerialNums->isNotEmpty()) {
+				return redirect()->back()->withInput()->withErrors([
+					'serial_nums' => '系统中已存在序列号：'.$existingSerialNums->implode(', '),
+				]);
+			}
+
+			DB::transaction(function () use ($data, $serialNums) {
+				$sku = ProductSku::where('id', $data['productSku_id'])->lockForUpdate()->firstOrFail();
+				$now = now();
+				$createdAt = date('Y-m-d H:i:s', strtotime($data['created_at']));
+
+				$rows = $serialNums->map(function ($serialNum) use ($data, $createdAt, $now) {
+					return [
+						'productSku_id' => (int) $data['productSku_id'],
+						'serial_num' => $serialNum,
+						'cost' => $data['cost'],
+						'ship_num' => $data['ship_num'],
+						'created_at' => $createdAt,
+						'updated_at' => $now,
+					];
+				})->all();
+
+				SerialNum::insert($rows);
+				$sku->increment('stock', $serialNums->count());
+			});
+
+			admin_toastr('成功录入 '.$serialNums->count().' 个序列号，并增加对应库存', 'success');
+
+			return redirect(admin_url('serial_num'));
+		}
 
 		protected function grid()
 		{
@@ -74,11 +169,12 @@ class SerialNumController extends Controller
                                 $actions->disableDelete();
                         });
 
-			$grid->tools(function ($tools) {
-				$tools->batch(function ($batch) {
-					$batch->disableDelete();
+				$grid->tools(function ($tools) {
+					$tools->append('<a href="'.admin_url('serial_num/batch-create').'" class="btn btn-sm btn-success"><i class="fa fa-plus"></i> 批量录入到货序列号</a>');
+					$tools->batch(function ($batch) {
+						$batch->disableDelete();
+					});
 				});
-			});
 
 			$grid->filter(function($filter){
 				$filter->disableIdFilter();
@@ -126,8 +222,39 @@ class SerialNumController extends Controller
 			  $batch->add('批量修改成本', new BatchUpdateCost());
 			  $batch->add('批量修改出库时间', new BatchUpdateDeletedAt());
 			 });
-			return $grid;
-		}
+				return $grid;
+			}
+
+			protected function normalizeBatchSerialNums($serialInput)
+			{
+				return collect(preg_split('/[\s,，、;；\/]+/u', trim((string) $serialInput)))
+					->map(function ($serialNum) {
+						return trim($serialNum);
+					})
+					->filter()
+					->values();
+			}
+
+			protected function skuOptions()
+			{
+				return ProductSku::query()
+					->orderBy('title')
+					->orderBy('id')
+					->get(['id', 'title', 'description', 'stock'])
+					->mapWithKeys(function (ProductSku $sku) {
+						$label = implode(' - ', array_filter([
+							$sku->id,
+							$sku->title,
+							$sku->description,
+							'库存'.$sku->stock,
+						], function ($value) {
+							return $value !== null && $value !== '';
+						}));
+
+						return [$sku->id => $label];
+					})
+					->toArray();
+			}
 
 		protected function categoryOptions()
 		{

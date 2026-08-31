@@ -31,22 +31,22 @@ class OrdersController extends Controller
     {
         $order->load(['user', 'items.product', 'items.productSku']);
 
-        $selectedSerialNos = $this->selectedSerialNos($order);
+        $selectedSerialRefs = $this->selectedSerialRefs($order);
 
         return $content
             ->header('查看订单')
             // body方法可以接受Laravel视图作为参数
             ->body(view('admin.orders.show', [
                 'order' => $order,
-                'selectedSerialNos' => $selectedSerialNos,
-                'selectedSerialOptions' => $this->selectedSerialOptions($order, $selectedSerialNos),
+                'selectedSerialNos' => $this->selectedSerialLabels($selectedSerialRefs),
+                'selectedSerialOptions' => $this->selectedSerialOptions($selectedSerialRefs),
             ]));
     }
     protected function grid()
     {
         $grid = new Grid(new Order);
 
-        $grid->model()->whereNotNull('created_at')->orderBy('created_at','desc');
+        $grid->model()->whereNotNull('created_at')->orderBy('id','desc');
 
         $grid->id('序号');
         $grid->no('订单流水号');
@@ -128,8 +128,7 @@ class OrdersController extends Controller
             'serial_no' => '发货序列号',
         ]);
 
-        $serialNos = $this->selectedSerialRefs($order)
-            ->merge($this->normalizeSerialNos($data['serial_no']))
+        $serialNos = $this->normalizeSerialNos($data['serial_no'])
             ->unique()
             ->values();
 
@@ -274,10 +273,6 @@ class OrdersController extends Controller
     {
         $term = trim((string) $request->input('q', $request->input('term', '')));
 
-        if ($term === '') {
-            return response()->json(['results' => []]);
-        }
-
         $order->load('items.productSku');
         $rootIds = $order->items
             ->filter(function ($item) {
@@ -311,9 +306,11 @@ class OrdersController extends Controller
             ->whereNull('sn.deleted_at')
             ->whereNull('sn.order_id')
             ->whereNull('sn.order_item_id')
-            ->where(function ($query) use ($term, $searchRegex) {
-                $query->where('sn.serial_num', 'like', $term . '%')
-                    ->orWhereRaw('sn.serial_num REGEXP ?', [$searchRegex]);
+            ->when($term !== '', function ($query) use ($term, $searchRegex) {
+                $query->where(function ($query) use ($term, $searchRegex) {
+                    $query->where('sn.serial_num', 'like', $term . '%')
+                        ->orWhereRaw('sn.serial_num REGEXP ?', [$searchRegex]);
+                });
             })
             ->orderBy('sn.serial_num')
             ->orderBy('sn.id')
@@ -323,7 +320,6 @@ class OrdersController extends Controller
             ->sort(function ($left, $right) {
                 return $this->compareSerialAge($left, $right);
             })
-            ->unique('serial_num')
             ->take(20)
             ->map(function ($serial) {
             $textParts = [
@@ -368,10 +364,11 @@ class OrdersController extends Controller
     protected function selectedSerialRefs(Order $order)
     {
         $linkedSerials = SerialNum::withTrashed()
+            ->with('productSku')
             ->where('order_id', $order->id)
             ->whereNotNull('order_item_id')
             ->orderBy('id')
-            ->get(['id', 'serial_num']);
+            ->get(['id', 'serial_num', 'productSku_id']);
         $linkedSerialNos = $linkedSerials->pluck('serial_num');
         $serialDataNos = $this->normalizeSerialNos($order->serial_data)
             ->reject(function ($serialNo) use ($linkedSerialNos) {
@@ -384,66 +381,76 @@ class OrdersController extends Controller
             })
             ->all())
             ->merge($serialDataNos)
-            ->values();
-    }
-
-    protected function selectedSerialOptions(Order $order, $selectedSerialNos)
-    {
-        $linkedOptions = SerialNum::withTrashed()
-            ->where('order_id', $order->id)
-            ->whereNotNull('order_item_id')
-            ->orderBy('id')
-            ->get(['id', 'serial_num'])
-            ->map(function ($serial) {
-                return [
-                    'value' => 'sn:' . $serial->id,
-                    'text' => $serial->serial_num,
-                    'serial_num' => $serial->serial_num,
-                ];
-            });
-        $linkedSerialNos = $linkedOptions->pluck('serial_num');
-        $fallbackOptions = collect($selectedSerialNos)
-            ->reject(function ($serialNo) use ($linkedSerialNos) {
-                return $linkedSerialNos->contains($serialNo);
-            })
-            ->map(function ($serialNo) {
-                return [
-                    'value' => $serialNo,
-                    'text' => $serialNo,
-                    'serial_num' => $serialNo,
-                ];
-            });
-
-        return collect($linkedOptions->all())->merge($fallbackOptions)->values();
-    }
-
-    protected function selectedSerialNos(Order $order)
-    {
-        $linkedSerialNos = SerialNum::withTrashed()
-            ->where('order_id', $order->id)
-            ->whereNotNull('order_item_id')
-            ->orderBy('id')
-            ->pluck('serial_num')
-            ->all();
-
-        $selectedSerialNos = $this->normalizeSerialNos($order->serial_data)
-            ->merge($linkedSerialNos)
-            ->filter()
+            ->merge($this->defaultOldestSerialRefs($order, $linkedSerials, $serialDataNos))
             ->unique()
             ->values();
-
-        if ($selectedSerialNos->count() > 0) {
-            return $selectedSerialNos;
-        }
-
-        if ($order->ship_status !== Order::SHIP_STATUS_PENDING) {
-            return collect();
-        }
-
-        return $this->defaultOldestSerialNos($order);
     }
 
-    protected function defaultOldestSerialNos(Order $order)
+    protected function selectedSerialOptions($selectedSerialRefs)
+    {
+        $serialIds = collect($selectedSerialRefs)
+            ->filter(function ($serialRef) {
+                return preg_match('/^sn:[0-9]+$/', (string) $serialRef);
+            })
+            ->map(function ($serialRef) {
+                return (int) substr((string) $serialRef, 3);
+            })
+            ->values();
+
+        $serialsById = SerialNum::withTrashed()
+            ->whereIn('id', $serialIds->all())
+            ->get(['id', 'serial_num'])
+            ->keyBy('id');
+
+        return collect($selectedSerialRefs)
+            ->map(function ($serialRef) use ($serialsById) {
+                if (preg_match('/^sn:([0-9]+)$/', (string) $serialRef, $matches)) {
+                    $serial = $serialsById->get((int) $matches[1]);
+                    if ($serial) {
+                        return [
+                            'value' => $serialRef,
+                            'text' => $serial->serial_num,
+                            'serial_num' => $serial->serial_num,
+                        ];
+                    }
+                }
+
+                return [
+                    'value' => $serialRef,
+                    'text' => $serialRef,
+                    'serial_num' => $serialRef,
+                ];
+            })
+            ->values();
+    }
+
+    protected function selectedSerialLabels($selectedSerialRefs)
+    {
+        $serialIds = collect($selectedSerialRefs)
+            ->filter(function ($serialRef) {
+                return preg_match('/^sn:[0-9]+$/', (string) $serialRef);
+            })
+            ->map(function ($serialRef) {
+                return (int) substr((string) $serialRef, 3);
+            })
+            ->values();
+
+        $serialsById = SerialNum::withTrashed()
+            ->whereIn('id', $serialIds->all())
+            ->pluck('serial_num', 'id');
+
+        return collect($selectedSerialRefs)
+            ->map(function ($serialRef) use ($serialsById) {
+                if (preg_match('/^sn:([0-9]+)$/', (string) $serialRef, $matches)) {
+                    return $serialsById->get((int) $matches[1], $serialRef);
+                }
+
+                return $serialRef;
+            })
+            ->values();
+    }
+
+    protected function defaultOldestSerialRefs(Order $order, $linkedSerials, $serialDataNos)
     {
         $requirements = $order->items
             ->filter(function ($item) {
@@ -459,6 +466,19 @@ class OrdersController extends Controller
             })
             ->filter(function ($amount, $rootId) {
                 return (int) $rootId > 0 && (int) $amount > 0;
+            });
+
+        if ($requirements->isEmpty()) {
+            return collect();
+        }
+
+        $selectedCounts = $this->selectedSerialRootCounts($linkedSerials, $serialDataNos, $requirements->keys());
+        $requirements = $requirements
+            ->map(function ($amount, $rootId) use ($selectedCounts) {
+                return max(0, (int) $amount - (int) $selectedCounts->get((string) $rootId, 0));
+            })
+            ->filter(function ($amount) {
+                return (int) $amount > 0;
             });
 
         if ($requirements->isEmpty()) {
@@ -491,13 +511,53 @@ class OrdersController extends Controller
                     ->sort(function ($left, $right) {
                         return $this->compareSerialAge($left, $right);
                     })
-                    ->unique('serial_num')
                     ->take((int) $amount)
-                    ->pluck('serial_num')
+                    ->map(function ($serial) {
+                        return 'sn:' . $serial->id;
+                    })
             );
         }
 
         return $serialNos->values();
+    }
+
+    protected function selectedSerialRootCounts($linkedSerials, $serialDataNos, $rootIds)
+    {
+        $counts = collect();
+
+        foreach ($linkedSerials as $serial) {
+            if (!$serial->productSku) {
+                continue;
+            }
+
+            $rootId = (string) $this->skuRootId($serial->productSku);
+            $counts[$rootId] = (int) $counts->get($rootId, 0) + 1;
+        }
+
+        if ($serialDataNos->isEmpty()) {
+            return $counts;
+        }
+
+        $serials = SerialNum::withTrashed()
+            ->with('productSku')
+            ->whereIn('serial_num', $serialDataNos->all())
+            ->get()
+            ->groupBy('serial_num');
+
+        foreach ($serialDataNos as $serialNo) {
+            $serial = $serials->get($serialNo, collect())->first(function ($serial) use ($rootIds) {
+                return $serial->productSku && $rootIds->contains((string) $this->skuRootId($serial->productSku));
+            });
+
+            if (!$serial || !$serial->productSku) {
+                continue;
+            }
+
+            $rootId = (string) $this->skuRootId($serial->productSku);
+            $counts[$rootId] = (int) $counts->get($rootId, 0) + 1;
+        }
+
+        return $counts;
     }
 
     protected function compareSerialAge($left, $right)

@@ -52,6 +52,8 @@ Route::group([
 
     $router->get('serial_num', 'SerialNumController@index');
     $router->get('serial_num/create', 'SerialNumController@create');
+    $router->get('serial_num/batch-create', 'SerialNumController@batchCreate')->name('admin.serial_num.batch_create');
+    $router->post('serial_num/batch-store', 'SerialNumController@batchStore')->name('admin.serial_num.batch_store');
     $router->post('serial_num', 'SerialNumController@store');
     $router->get('serial_num/{id}/edit', 'SerialNumController@edit');
     $router->put('serial_num/{id}', 'SerialNumController@update');

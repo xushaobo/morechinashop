@@ -67,14 +67,28 @@ class ProductSkuController extends Controller
         // 移除新增按钮
         $grid->disableCreateButton();
 
-        $grid->filter(function($filter){
-                                $filter->disableIdFilter();
+	        $grid->filter(function($filter){
+	                                $filter->disableIdFilter();
 
-                                $filter->like('id','ID号');
-                                $filter->like('title','货号');
-                                $filter->like('description','分类描述');
-                                $filter->notEqual('stock','剔除库存数量0');
-                        });
+	                                $filter->like('id','ID号');
+	                                $filter->like('title','货号');
+	                                $filter->like('description','分类描述');
+	                                $filter->notEqual('stock','剔除库存数量0');
+					$filter->where(function ($query) {
+						$serialCountSql = '(SELECT COUNT(*) FROM serial_nums WHERE serial_nums.productSku_id = product_skus.id AND serial_nums.deleted_at IS NULL)';
+
+						if ($this->input === 'same') {
+							$query->whereRaw('product_skus.stock = '.$serialCountSql);
+						}
+
+						if ($this->input === 'different') {
+							$query->whereRaw('product_skus.stock <> '.$serialCountSql);
+						}
+					}, '库存与序列号')->select([
+						'same' => '一致',
+						'different' => '不一致',
+					]);
+	                        });
         return $grid;
     }
 

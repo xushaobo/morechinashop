@@ -38,7 +38,7 @@ class OrdersController extends Controller
             // 使用 with 方法预加载，避免N + 1问题
             ->with(['items.product', 'items.productSku'])
             ->where('user_id', $request->user()->id)
-            ->orderBy('created_at', 'desc')
+            ->orderBy('id', 'desc')
             ->paginate(10);
 
         return view('orders.index', ['orders' => $orders]);

@@ -10,6 +10,7 @@ use Encore\Admin\Form;
 use Encore\Admin\Grid;
 use Encore\Admin\Layout\Content;
 use Encore\Admin\Show;
+use Carbon\Carbon;
 
 
 class ProductSkuController extends Controller
@@ -30,6 +31,7 @@ class ProductSkuController extends Controller
     protected function grid()
     {
         $grid = new Grid(new ProductSku());
+        $controller = $this;
 
         $grid->column('id', __('Id'));
 	$grid->column('master_sku_id', ('关联主商品ID'))->sortable();
@@ -61,7 +63,20 @@ class ProductSkuController extends Controller
     } else {
         return "<span style='color: green;'>一致</span>";
     }
-});
+	});
+		$grid->column('old_serial_warning', '老序列号提醒')->display(function () use ($controller) {
+			$oldestSerial = $controller->oldestInStockSerial($this->id);
+
+			if (!$oldestSerial) {
+				return "<span class='label label-default'>无未出库序列号</span>";
+			}
+
+			if ($oldestSerial['age_years'] >= 1) {
+				return "<span class='label label-danger' style='font-size: 13px;'>优先出库 {$oldestSerial['serial_num']}，生产{$oldestSerial['production_date_text']}，已{$oldestSerial['age_years']}年</span>";
+			}
+
+			return "<span class='label label-success'>正常 {$oldestSerial['serial_num']}，生产{$oldestSerial['production_date_text']}，{$oldestSerial['age_days']}天</span>";
+		});
         $grid->column('ontheway', __('在途数量'))->sortable();
 
         // 移除新增按钮
@@ -73,7 +88,23 @@ class ProductSkuController extends Controller
 	                                $filter->like('id','ID号');
 	                                $filter->like('title','货号');
 	                                $filter->like('description','分类描述');
-	                                $filter->notEqual('stock','剔除库存数量0');
+					$filter->where(function ($query) {
+						$query->whereHas('serialNum', function ($query) {
+							$query->withTrashed()->where('serial_num', 'like', '%'.$this->input.'%');
+						});
+					}, '序列号');
+					$filter->where(function ($query) {
+						if ($this->input === 'nonzero') {
+							$query->where('stock', '<>', 0);
+						}
+
+						if ($this->input === 'zero') {
+							$query->where('stock', 0);
+						}
+					}, '库存数量')->select([
+						'nonzero' => '库存不为0',
+						'zero' => '库存为0',
+					]);
 					$filter->where(function ($query) {
 						$serialCountSql = '(SELECT COUNT(*) FROM serial_nums WHERE serial_nums.productSku_id = product_skus.id AND serial_nums.deleted_at IS NULL)';
 
@@ -130,7 +161,83 @@ class ProductSkuController extends Controller
 		$form->text('deleted_at', '出库时间');
 	});
         return $form;
-    }
+	}
+
+	protected function oldestInStockSerial($skuId)
+	{
+		return SerialNum::query()
+			->where('productSku_id', $skuId)
+			->whereNull('deleted_at')
+			->get(['id', 'serial_num'])
+			->map(function ($serial) {
+				$age = $this->parseSerialProductionDate($serial->serial_num);
+
+				if (!$age) {
+					return null;
+				}
+
+				return array_merge($age, [
+					'id' => $serial->id,
+					'serial_num' => $serial->serial_num,
+				]);
+			})
+			->filter()
+			->sort(function ($left, $right) {
+				if ($left['production_date']->ne($right['production_date'])) {
+					return $left['production_date']->lt($right['production_date']) ? -1 : 1;
+				}
+
+				return $left['id'] <=> $right['id'];
+			})
+			->first();
+	}
+
+	protected function parseSerialProductionDate($serialNum)
+	{
+		$serialNum = trim((string) $serialNum);
+
+		if (preg_match('/^[A-Za-z]*(20[0-9]{2})([0-9]{2})([0-9]{2})/', $serialNum, $matches)) {
+			$year = (int) $matches[1];
+			$month = (int) $matches[2];
+			$day = (int) $matches[3];
+
+			if (!checkdate($month, $day, $year)) {
+				return null;
+			}
+
+			$productionDate = Carbon::create($year, $month, $day)->startOfDay();
+			$week = (int) $productionDate->format('W');
+		} elseif (preg_match('/^[A-Za-z]*([0-9]{2})([0-9]{2})/', $serialNum, $matches)) {
+			$year = 2000 + (int) $matches[1];
+			$week = (int) $matches[2];
+
+			if ($week < 1 || $week > 53) {
+				return null;
+			}
+
+			$productionDate = Carbon::now()->setISODate($year, $week)->startOfWeek();
+		} elseif (preg_match('/^[A-Za-z]*([0-9]{2})([A-L])/', $serialNum, $matches)) {
+			$year = 2000 + (int) $matches[1];
+			$month = ord($matches[2]) - ord('A') + 1;
+			$productionDate = Carbon::create($year, $month, 1)->startOfDay();
+			$week = (int) $productionDate->format('W');
+		} else {
+			return null;
+		}
+
+		$today = Carbon::now()->startOfDay();
+		$ageDays = max(0, $productionDate->diffInDays($today, false));
+		$ageYears = max(0, $productionDate->diffInYears($today, false));
+
+		return [
+			'year' => $year,
+			'week' => $week,
+			'age_days' => $ageDays,
+			'age_years' => $ageYears,
+			'production_date_text' => $productionDate->format('Y-m-d'),
+			'production_date' => $productionDate,
+		];
+	}
 
 
     public function create(Content $content)

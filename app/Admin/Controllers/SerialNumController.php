@@ -88,12 +88,7 @@ class SerialNumController extends Controller
 				$serialNums = $inputSerialNums;
 			}
 
-			$duplicatedInput = $inputSerialNums->countBy()
-				->filter(function ($count) {
-					return $count > 1;
-				})
-				->keys()
-				->values();
+			$duplicatedInput = $this->duplicatedSerialNums($inputSerialNums);
 			if ($duplicatedInput->isNotEmpty()) {
 				return redirect()->back()->withInput()->withErrors([
 					'serial_nums' => '本次输入有重复序列号：'.$duplicatedInput->implode(', '),
@@ -232,6 +227,22 @@ class SerialNumController extends Controller
 						return trim($serialNum);
 					})
 					->filter()
+					->values();
+			}
+
+			protected function duplicatedSerialNums($serialNums)
+			{
+				$counts = [];
+
+				foreach ($serialNums as $serialNum) {
+					$counts[$serialNum] = isset($counts[$serialNum]) ? $counts[$serialNum] + 1 : 1;
+				}
+
+				return collect($counts)
+					->filter(function ($count) {
+						return $count > 1;
+					})
+					->keys()
 					->values();
 			}
 

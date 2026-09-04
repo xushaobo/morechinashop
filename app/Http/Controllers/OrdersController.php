@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\OrderRequest;
 use App\Models\UserAddress;
 use App\Models\Order;
+use App\Models\SerialNum;
 use Illuminate\Http\Request;
 use App\Services\OrderService;
 
@@ -16,6 +17,7 @@ use App\Http\Requests\Admin\HandlePayConfirmRequest;
 use App\Exceptions\InvalidRequestException;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class OrdersController extends Controller
 {
@@ -76,18 +78,39 @@ class OrdersController extends Controller
         return $order;
     }
 
-      public function priceUpdate(Order $order, PriceUpdateRequest $request)
-    {
-        $order->update([
-	    'closed'               => true
-        ]);
-	foreach ($order->items as $item) {
-	  $item->productSku->addStock($item->amount);
-	}
-	$order->delete();
+	      public function priceUpdate(Order $order, PriceUpdateRequest $request)
+	    {
+		DB::transaction(function () use ($order) {
+		    $order->load(['items.productSku']);
+		    $orderItemIds = $order->items->pluck('id')->all();
 
-	return $order;
+		    SerialNum::withTrashed()
+			->where(function ($query) use ($order, $orderItemIds) {
+			    $query->where('order_id', $order->id);
+
+			    if (!empty($orderItemIds)) {
+				$query->orWhereIn('order_item_id', $orderItemIds);
+			    }
+			})
+			->update([
+			    'order_id' => null,
+			    'order_item_id' => null,
+			    'deleted_at' => null,
+			]);
+
+		    $order->update([
+			'closed' => true
+		    ]);
+
+		    foreach ($order->items as $item) {
+			$item->productSku->addStock($item->amount);
+		    }
+
+		    $order->delete();
+		});
 	
-    }
+		return $order;
+		
+	    }
 
 }

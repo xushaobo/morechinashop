@@ -100,8 +100,6 @@ class OrdersController extends Controller
             throw new InvalidRequestException('订单已发货');
         }
 
-        $this->syncSerialDataLinks($order);
-
         $data = $this->validate($request, [
             'express_company' => ['required'],
             'express_no' => ['required'],
@@ -246,7 +244,11 @@ class OrdersController extends Controller
         DB::transaction(function () use ($order, $serialNos, $assignments) {
             SerialNum::withTrashed()
                 ->where('order_id', $order->id)
-                ->update(['order_id' => null, 'order_item_id' => null]);
+                ->update([
+                    'order_id' => null,
+                    'order_item_id' => null,
+                    'deleted_at' => null,
+                ]);
 
             foreach ($assignments as $assignment) {
                 $serial = $assignment['serial'];

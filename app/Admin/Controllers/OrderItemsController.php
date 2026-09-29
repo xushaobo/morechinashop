@@ -13,6 +13,8 @@ use Encore\Admin\Form;
 use Encore\Admin\Layout\Content;
 
 use Illuminate\Support\Facades\DB; // 记得引入 DB Facade
+use Illuminate\Http\Request;
+use App\Exceptions\InvalidRequestException;
 
 
 class OrderItemsController extends AdminController
@@ -24,6 +26,220 @@ class OrderItemsController extends AdminController
 	return $content
 	  ->header('成本列表')
 	  ->body($this->grid());
+    }
+
+    public function serialForm(OrderItem $orderItem, Content $content)
+    {
+        $orderItem->load(['order', 'product', 'productSku']);
+
+        $selectedSerials = SerialNum::withTrashed()
+            ->where('productSku_id', $orderItem->product_sku_id)
+            ->where(function ($query) use ($orderItem) {
+                $query->where('order_item_id', $orderItem->id)
+                    ->orWhere(function ($query) use ($orderItem) {
+                        $query->where('order_id', $orderItem->order_id)
+                            ->whereNull('order_item_id');
+                    });
+            })
+            ->orderBy('id')
+            ->get(['id', 'serial_num']);
+
+        return $content
+            ->header('填写序列号')
+            ->body(view('admin.order_items.serial', [
+                'orderItem' => $orderItem,
+                'selectedSerialOptions' => $selectedSerials->map(function ($serial) {
+                    return [
+                        'value' => 'sn:' . $serial->id,
+                        'text' => $serial->serial_num,
+                    ];
+                })->values(),
+            ]));
+    }
+
+    public function serialOptions(OrderItem $orderItem, Request $request)
+    {
+        $term = trim((string) $request->input('q', $request->input('term', '')));
+
+        $serials = DB::table('serial_nums as sn')
+            ->leftJoin('product_skus as product_skus', 'sn.productSku_id', '=', 'product_skus.id')
+            ->select([
+                'sn.id',
+                'sn.serial_num',
+                'sn.cost',
+                'sn.order_item_id',
+                'product_skus.title as sku_title',
+            ])
+            ->where('sn.productSku_id', $orderItem->product_sku_id)
+            ->where(function ($query) use ($orderItem) {
+                $query->where(function ($query) {
+                    $query->whereNull('sn.deleted_at')
+                        ->whereNull('sn.order_id')
+                        ->whereNull('sn.order_item_id');
+                })->orWhere('sn.order_item_id', $orderItem->id)
+                    ->orWhere(function ($query) use ($orderItem) {
+                        $query->where('sn.order_id', $orderItem->order_id)
+                            ->whereNull('sn.order_item_id');
+                    });
+            })
+            ->when($term !== '', function ($query) use ($term) {
+                $query->where('sn.serial_num', 'like', $term . '%');
+            })
+            ->orderBy('sn.serial_num')
+            ->orderBy('sn.id')
+            ->limit(50)
+            ->get();
+
+        return response()->json([
+            'results' => $serials->map(function ($serial) {
+                $text = $serial->serial_num;
+                if ($serial->cost !== null && $serial->cost !== '') {
+                    $text .= ' - 成本' . $serial->cost;
+                }
+
+                return [
+                    'id' => 'sn:' . $serial->id,
+                    'text' => $text,
+                ];
+            })->values(),
+        ]);
+    }
+
+    public function updateSerial(OrderItem $orderItem, Request $request)
+    {
+        $orderItem->load(['order', 'productSku']);
+        if (!$orderItem->productSku) {
+            throw new InvalidRequestException('该订单明细没有关联产品 SKU');
+        }
+
+        $serialNos = $this->normalizeSerialNos($request->input('serial_no', []));
+        if ($serialNos->count() > (int) $orderItem->amount) {
+            throw new InvalidRequestException('序列号数量不能超过订单明细数量');
+        }
+
+        $serialIds = $serialNos
+            ->filter(function ($serialNo) {
+                return preg_match('/^sn:[0-9]+$/', (string) $serialNo);
+            })
+            ->map(function ($serialNo) {
+                return (int) substr((string) $serialNo, 3);
+            })
+            ->values();
+        $plainSerialNos = $serialNos
+            ->reject(function ($serialNo) {
+                return preg_match('/^sn:[0-9]+$/', (string) $serialNo);
+            })
+            ->values();
+
+        $serials = $serialNos->isEmpty()
+            ? collect()
+            : SerialNum::withTrashed()
+                ->with(['orderItem.order'])
+                ->where('productSku_id', $orderItem->product_sku_id)
+                ->where(function ($query) use ($serialIds, $plainSerialNos) {
+                    if ($serialIds->isNotEmpty()) {
+                        $query->whereIn('id', $serialIds->all());
+                    }
+                    if ($plainSerialNos->isNotEmpty()) {
+                        $method = $serialIds->isNotEmpty() ? 'orWhereIn' : 'whereIn';
+                        $query->{$method}('serial_num', $plainSerialNos->all());
+                    }
+                })
+                ->get();
+
+        $serialsByNo = $serials->groupBy('serial_num');
+        $serialsById = $serials->keyBy('id');
+        $selected = collect();
+        $usedIds = [];
+
+        foreach ($serialNos as $serialNo) {
+            $requestedId = preg_match('/^sn:([0-9]+)$/', (string) $serialNo, $matches)
+                ? (int) $matches[1]
+                : null;
+            $candidates = $requestedId
+                ? collect([$serialsById->get($requestedId)])->filter()
+                : $serialsByNo->get($serialNo, collect());
+            $serial = $candidates->first(function ($serial) use ($orderItem, &$usedIds) {
+                if (in_array((int) $serial->id, $usedIds, true)) {
+                    return false;
+                }
+                if ($serial->order_id && (int) $serial->order_id !== (int) $orderItem->order_id) {
+                    return false;
+                }
+                if ($serial->order_item_id && (int) $serial->order_item_id !== (int) $orderItem->id) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            if (!$serial) {
+                throw new InvalidRequestException("序列号 {$serialNo} 不存在、已绑定其它订单或不属于当前 product_sku_id");
+            }
+
+            $usedIds[] = (int) $serial->id;
+            $selected->push($serial);
+        }
+
+        DB::transaction(function () use ($orderItem, $selected) {
+            SerialNum::withTrashed()
+                ->where('productSku_id', $orderItem->product_sku_id)
+                ->where('order_id', $orderItem->order_id)
+                ->where(function ($query) use ($orderItem) {
+                    $query->where('order_item_id', $orderItem->id)
+                        ->orWhereNull('order_item_id');
+                })
+                ->update([
+                    'order_id' => null,
+                    'order_item_id' => null,
+                    'deleted_at' => null,
+                ]);
+
+            foreach ($selected as $serial) {
+                SerialNum::withTrashed()
+                    ->where('id', $serial->id)
+                    ->update([
+                        'order_id' => $orderItem->order_id,
+                        'order_item_id' => $orderItem->id,
+                        'deleted_at' => $serial->deleted_at ?: ($orderItem->order->paid_at ?: now()),
+                    ]);
+            }
+
+            $serialData = SerialNum::withTrashed()
+                ->where(function ($query) use ($orderItem) {
+                    $query->where('order_id', $orderItem->order_id)
+                        ->orWhereHas('orderItem', function ($query) use ($orderItem) {
+                            $query->where('order_id', $orderItem->order_id);
+                        });
+                })
+                ->orderBy('id')
+                ->pluck('serial_num')
+                ->implode(', ');
+
+            $orderItem->order->update([
+                'serial_data' => $serialData !== '' ? ['serial_no' => $serialData] : null,
+            ]);
+        });
+
+        admin_toastr('序列号已保存，并已同步到订单详情', 'success');
+
+        return redirect(admin_url('stocks'));
+    }
+
+    protected function normalizeSerialNos($serialInput)
+    {
+        $values = is_array($serialInput) ? $serialInput : [$serialInput];
+
+        return collect($values)
+            ->flatMap(function ($serialNo) {
+                return preg_split('/[\s,，、;；\/]+/u', trim((string) $serialNo));
+            })
+            ->map(function ($serialNo) {
+                return trim($serialNo);
+            })
+            ->filter()
+            ->unique()
+            ->values();
     }
     protected function grid()
     {
@@ -94,6 +310,10 @@ $grid->model()
     $profit = $sales - $totalCost;
     
     return number_format($profit, 2);
+    });
+    $grid->column('操作')->display(function () {
+        $url = route('admin.orderItems.serial', ['orderItem' => $this->id]);
+        return '<a href="' . e($url) . '" class="btn btn-xs btn-primary">填写序列号</a>';
     });
     // 显示序列号
     $grid->column('序列号')->display(function () {

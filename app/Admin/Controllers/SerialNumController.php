@@ -45,11 +45,19 @@ class SerialNumController extends Controller
 
 		public function batchCreate(Content $content)
 		{
+			$recentSerial = SerialNum::withTrashed()
+				->whereNotNull('ship_num')
+				->where('ship_num', '<>', '')
+				->orderByDesc('created_at')
+				->orderByDesc('id')
+				->first(['ship_num']);
+
 			return $content
-			 ->header('批量录入到货产品序列号')
-			 ->body(view('admin.serial_nums.batch_create', [
-				'skuOptions' => $this->skuOptions(),
-			 ]));
+				 ->header('批量录入到货产品序列号')
+				 ->body(view('admin.serial_nums.batch_create', [
+					'skuOptions' => $this->skuOptions(),
+					'recentShipNum' => $recentSerial ? $recentSerial->ship_num : null,
+				 ]));
 		}
 
 		public function batchStore(Request $request)
@@ -135,7 +143,10 @@ class SerialNumController extends Controller
 		{
 			$grid = new Grid(new SerialNum);
 			// 避免N+1问题先查出数据
-                        $grid->model()->with(['productSku.product.category'])->orderBy('created_at','desc');
+                        $grid->model()
+                            ->with(['productSku.product.category'])
+                            ->orderByDesc('created_at')
+                            ->orderByDesc('id');
 			$grid->id('ID')->sortable();
 			$grid->column('productsku.product_id','所属产品id')->sortable();
 			//$grid->column('productsku.product.title','所属产品名称');			// 关联表数据

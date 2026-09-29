@@ -1,0 +1,5 @@
+[2026-09-20 16:16:35] local.INFO: Batch update cost request {"_token":"rhhFQMCU91kMlqLcsbOg05HiBc8cdVZ51YOfEFuJ","ids":["39250","39251"],"cost":"80.95"} 
+[2026-09-20 16:25:43] local.INFO: Batch update cost request {"_token":"rhhFQMCU91kMlqLcsbOg05HiBc8cdVZ51YOfEFuJ","ids":["39230","39231","39232","39233","39234","39235","39236","39237","39238","39239","39240"],"cost":"1283.19"} 
+[2026-09-20 16:38:29] local.INFO: Batch update cost request {"_token":"rhhFQMCU91kMlqLcsbOg05HiBc8cdVZ51YOfEFuJ","ids":["39222","39223"],"cost":"641.6"} 
+[2026-09-20 16:38:52] local.INFO: Batch update cost request {"_token":"rhhFQMCU91kMlqLcsbOg05HiBc8cdVZ51YOfEFuJ","ids":["39224","39225","39226","39227"],"cost":"320.8"} 
+[2026-09-20 16:51:21] local.INFO: Batch update cost request {"_token":"rhhFQMCU91kMlqLcsbOg05HiBc8cdVZ51YOfEFuJ","ids":["39247","39248","39249"],"cost":"707.96"} 

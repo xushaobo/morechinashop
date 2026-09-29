@@ -366,11 +366,15 @@ class OrdersController extends Controller
     protected function selectedSerialRefs(Order $order)
     {
         $linkedSerials = SerialNum::withTrashed()
-            ->with('productSku')
-            ->where('order_id', $order->id)
-            ->whereNotNull('order_item_id')
+            ->with(['productSku', 'orderItem.order'])
+            ->where(function ($query) use ($order) {
+                $query->where('order_id', $order->id)
+                    ->orWhereHas('orderItem', function ($query) use ($order) {
+                        $query->where('order_id', $order->id);
+                    });
+            })
             ->orderBy('id')
-            ->get(['id', 'serial_num', 'productSku_id']);
+            ->get(['id', 'serial_num', 'productSku_id', 'order_id', 'order_item_id']);
         $linkedSerialNos = $linkedSerials->pluck('serial_num');
         $serialDataNos = $this->normalizeSerialNos($order->serial_data)
             ->reject(function ($serialNo) use ($linkedSerialNos) {

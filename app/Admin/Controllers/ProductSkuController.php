@@ -4,6 +4,7 @@ namespace App\Admin\Controllers;
 
 use App\Models\ProductSku;
 use App\Models\SerialNum;
+use App\Admin\Displayers\EditableDate;
 use App\Http\Controllers\Controller;
 use Encore\Admin\Controllers\HasResourceActions;
 use Encore\Admin\Form;
@@ -44,6 +45,19 @@ class ProductSkuController extends Controller
 	->totalRow(function ($amount) {
            return "<span class='text-danger text-bold'>总数量： {$amount} </span>";
 	});
+	$grid->column('last_checked_at', __('最近核对日期'))->display(function ($value) {
+		return $value ? Carbon::parse($value)->format('Y-m-d') : '2025-01-01';
+	})->displayUsing(EditableDate::class, ['date'])->display(function ($value) {
+		$defaultDate = '2025-01-01';
+		$isDefaultDate = !$this->last_checked_at
+			|| Carbon::parse($this->last_checked_at)->format('Y-m-d') === $defaultDate;
+
+		if ($isDefaultDate) {
+			return str_replace("data-value='" . $defaultDate . "'", "data-value='" . date('Y-m-d') . "'", $value);
+		}
+
+		return $value;
+	})->sortable();
 	  $grid->column('serial_count', '序列号数量')
         ->display(function () {
             return SerialNum::where('productSku_id', $this->id)
@@ -88,6 +102,7 @@ class ProductSkuController extends Controller
 	                                $filter->like('id','ID号');
 	                                $filter->like('title','货号');
 	                                $filter->like('description','分类描述');
+	                                $filter->between('last_checked_at', '最近核对日期')->date();
 					$filter->where(function ($query) {
 						$query->whereHas('serialNum', function ($query) {
 							$query->withTrashed()->where('serial_num', 'like', '%'.$this->input.'%');
@@ -144,6 +159,7 @@ class ProductSkuController extends Controller
         $form->text('description', __('分类描述'));
         $form->number('ontheway', __('在途数量'));
         $form->number('stock', __('库存数量'));
+		$form->date('last_checked_at', __('最近核对日期'))->default('2025-01-01');
 	// 多图上传字段
 	$form->hasMany('productSkuImage','产品SKU图片', function(Form\NestedForm $form) {
 	   $form->image('path', '图片')->uniqueName()

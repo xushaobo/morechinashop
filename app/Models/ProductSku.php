@@ -7,7 +7,9 @@ use Illuminate\Support\Str;
 
 class ProductSku extends Model
 {
-    protected $fillable = ['title', 'description','price','stock_price','stock', 'master_sku_id','root_sku_id','total_stock'];
+    protected $fillable = ['title', 'description','price','stock_price','stock', 'master_sku_id','root_sku_id','total_stock', 'last_checked_at'];
+
+    protected $dates = ['last_checked_at'];
 
     protected static function boot()
     {

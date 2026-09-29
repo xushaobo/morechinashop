@@ -37,6 +37,9 @@ Route::group([
 
     $router->get('orders', 'OrdersController@index')->name('admin.orders.index');
     $router->get('stocks', 'OrderItemsController@index')->name('admin.orderItems.index');
+    $router->get('stocks/{orderItem}/serial', 'OrderItemsController@serialForm')->name('admin.orderItems.serial');
+    $router->get('stocks/{orderItem}/serial-options', 'OrderItemsController@serialOptions')->name('admin.orderItems.serial_options');
+    $router->post('stocks/{orderItem}/serial', 'OrderItemsController@updateSerial')->name('admin.orderItems.update_serial');
     $router->get('stocks/{order}/edit', 'OrderItemsController@edit')->name('admin.orderItems.edit');
     $router->get('stocks/{order}', 'OrdersController@show')->name('admin.orders.show');
     $router->get('orders/{order}', 'OrdersController@show')->name('admin.orders.show');

@@ -38,7 +38,7 @@
       <div class="form-group {{ $errors->has('ship_num') ? 'has-error' : '' }}">
         <label for="ship_num" class="col-sm-2 control-label">到货批次号</label>
         <div class="col-sm-6">
-          <input type="text" id="ship_num" name="ship_num" value="{{ old('ship_num') }}" class="form-control" required>
+          <input type="text" id="ship_num" name="ship_num" value="{{ old('ship_num', $recentShipNum ?? '') }}" class="form-control" required>
         </div>
       </div>
 
@@ -74,9 +74,39 @@
 <script>
 $(document).ready(function() {
   if ($.fn.select2) {
-    $('#productSku_id').select2({
+    var $productSku = $('#productSku_id');
+    var searchStorageKey = 'admin.serial_num.batch.product_search';
+    var lastSearch = '';
+
+    try {
+      lastSearch = window.localStorage.getItem(searchStorageKey) || '';
+    } catch (error) {
+      lastSearch = '';
+    }
+
+    $productSku.select2({
       width: '100%',
       placeholder: '搜索ID、货号或描述'
+    });
+
+    $productSku.on('select2:open', function() {
+      window.setTimeout(function() {
+        var $search = $('.select2-container--open .select2-search__field');
+        if (!$search.length || !lastSearch) {
+          return;
+        }
+
+        $search.val(lastSearch).trigger('input');
+      }, 0);
+    });
+
+    $(document).on('input', '.select2-container--open .select2-search__field', function() {
+      lastSearch = this.value;
+      try {
+        window.localStorage.setItem(searchStorageKey, lastSearch);
+      } catch (error) {
+        // Ignore browsers where localStorage is unavailable.
+      }
     });
   }
 });

@@ -63,14 +63,16 @@ class SerialNumController extends Controller
 		public function batchStore(Request $request)
 		{
 			$data = $this->validate($request, [
-				'productSku_id' => ['required', 'integer', 'exists:product_skus,id'],
+				'productSku_ids' => ['required', 'array', 'min:1'],
+				'productSku_ids.*' => ['required', 'integer', 'distinct', 'exists:product_skus,id'],
 				'ship_num' => ['required', 'string'],
 				'cost' => ['required'],
 				'created_at' => ['required', 'date'],
 				'quantity' => ['required', 'integer', 'min:1'],
 				'serial_nums' => ['required', 'string'],
 			], [], [
-				'productSku_id' => '商品ID',
+				'productSku_ids' => '商品',
+				'productSku_ids.*' => '商品',
 				'ship_num' => '到货批次号',
 				'cost' => '成本',
 				'created_at' => '到货日期',
@@ -103,38 +105,57 @@ class SerialNumController extends Controller
 				]);
 			}
 
+			$skuIds = collect($data['productSku_ids'])->map(function ($id) {
+				return (int) $id;
+			})->unique()->values();
+
 			$existingSerialNums = SerialNum::withTrashed()
+				->whereIn('productSku_id', $skuIds->all())
 				->whereIn('serial_num', $inputSerialNums->all())
-				->pluck('serial_num')
-				->unique()
-				->values();
+				->get(['productSku_id', 'serial_num'])
+				->groupBy('productSku_id');
 			if ($existingSerialNums->isNotEmpty()) {
+				$conflicts = $existingSerialNums->map(function ($rows, $skuId) {
+					return 'SKU ' . $skuId . '：' . $rows->pluck('serial_num')->unique()->implode(', ');
+				})->values();
+
 				return redirect()->back()->withInput()->withErrors([
-					'serial_nums' => '系统中已存在序列号：'.$existingSerialNums->implode(', '),
+					'serial_nums' => '以下商品中已有这些序列号：' . $conflicts->implode('；'),
 				]);
 			}
 
-			DB::transaction(function () use ($data, $serialNums) {
-				$sku = ProductSku::where('id', $data['productSku_id'])->lockForUpdate()->firstOrFail();
+			DB::transaction(function () use ($skuIds, $data, $serialNums) {
+				$skus = ProductSku::whereIn('id', $skuIds->all())
+					->lockForUpdate()
+					->get()
+					->keyBy('id');
 				$now = now();
 				$createdAt = date('Y-m-d H:i:s', strtotime($data['created_at']));
+				$rows = [];
 
-				$rows = $serialNums->map(function ($serialNum) use ($data, $createdAt, $now) {
-					return [
-						'productSku_id' => (int) $data['productSku_id'],
-						'serial_num' => $serialNum,
-						'cost' => $data['cost'],
-						'ship_num' => $data['ship_num'],
-						'created_at' => $createdAt,
-						'updated_at' => $now,
-					];
-				})->all();
+				foreach ($skuIds as $skuId) {
+					if (!$skus->has($skuId)) {
+						throw new \RuntimeException('商品不存在：' . $skuId);
+					}
+
+					foreach ($serialNums as $serialNum) {
+						$rows[] = [
+							'productSku_id' => $skuId,
+							'serial_num' => $serialNum,
+							'cost' => $data['cost'],
+							'ship_num' => $data['ship_num'],
+							'created_at' => $createdAt,
+							'updated_at' => $now,
+						];
+					}
+
+					$skus->get($skuId)->increment('stock', $serialNums->count());
+				}
 
 				SerialNum::insert($rows);
-				$sku->increment('stock', $serialNums->count());
 			});
 
-			admin_toastr('成功录入 '.$serialNums->count().' 个序列号，并增加对应库存', 'success');
+			admin_toastr('成功为 '.$skuIds->count().' 个 SKU 录入 '.$serialNums->count().' 个序列号，共新增 '.($skuIds->count() * $serialNums->count()).' 条记录', 'success');
 
 			return redirect(admin_url('serial_num'));
 		}
@@ -155,7 +176,7 @@ class SerialNumController extends Controller
 			});			// 关联表数据
 			$grid->column('productsku.title','货号')->sortable();
 			$grid->column('productsku.description','描述')->sortable();
-			$grid->serial_num('序列号')->sortable();
+				$grid->serial_num('序列号')->sortable()->editable();
 			$grid->cost('成本')->sortable()->editable()->totalRow(function ($amount) {
 			    return "<span class='text-danger text-bold'>总成本： <i class='fa fa-yen'></i>{$amount} 元</span>";
 			});
